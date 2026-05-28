@@ -26,7 +26,6 @@ CREATE TABLE IF NOT EXISTS `stockSimulator`.`User` (
   `uid` INT NOT NULL AUTO_INCREMENT,
   `userName` VARCHAR(45) NOT NULL,
   `accountBal` DECIMAL(10,2) NULL DEFAULT 0.00,
-  `totalProfit` DECIMAL(10,2) NULL DEFAULT 0.00,
   PRIMARY KEY (`uid`))
 ENGINE = InnoDB;
 
