@@ -4,6 +4,8 @@
  */
 package mthree.stocksimulator.controller;
 
+import mthree.stocksimulator.view.SimulatorView;
+
 /**
  *
  * @author gabri
@@ -12,9 +14,11 @@ public class Controller {
     
     private final SimController simController;
     private final UserController userController;
+    private final SimulatorView view;
     
-    public Controller(SimController sController, UserController uController){
+    public Controller(SimController sController, UserController uController, SimulatorView sView){
         this.simController = sController;
         this.userController = uController;
+        this.view = sView;
     }
 }
