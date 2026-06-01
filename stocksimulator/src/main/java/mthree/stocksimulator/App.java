@@ -126,6 +126,6 @@ public class App {
             } else {
                 System.out.println("-> No valid dates found in the specified range for " + stock.getStockCode());
             }
-    }
+        }
     }
 }
