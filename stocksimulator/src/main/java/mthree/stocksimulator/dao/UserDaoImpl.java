@@ -8,9 +8,7 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
-import mthree.stocksimulator.dao.mappers.StockPriceSnapshotMapper;
 import mthree.stocksimulator.dao.mappers.UserMapper;
-import mthree.stocksimulator.model.StockPriceSnapshot;
 import mthree.stocksimulator.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -52,6 +50,13 @@ public class UserDaoImpl implements UserDao {
     public User getUser(int uid) {
         String sql = "SELECT uid, userName, accountBal FROM User WHERE uid = ?";
         return jdbcTemplate.queryForObject(sql, new UserMapper(), uid);
+    }
+    
+    // Update user name
+    @Override
+    public void updateUserName(int uid, String newName){
+        String sql = "UPDATE User SET userName = ? WHERE uid = ?";
+        jdbcTemplate.update(sql, newName, uid);
     }
 
     // Get all users

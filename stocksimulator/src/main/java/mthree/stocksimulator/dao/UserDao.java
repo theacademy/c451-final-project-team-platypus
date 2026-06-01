@@ -20,6 +20,8 @@ public interface UserDao {
     
     public List<User> getAllUsers();
     
+    public void updateUserName(int uid, String newName);
+    
     public void deductBalance(int uid, BigDecimal amount);
     
     public void addBalance(int uid, BigDecimal amount);
