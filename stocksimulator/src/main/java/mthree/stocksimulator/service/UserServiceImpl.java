@@ -4,21 +4,41 @@
  */
 package mthree.stocksimulator.service;
 
-import mthree.stocksimulator.dao.UserDao;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.List;
+import mthree.stocksimulator.dao.UserDaoImpl;
 import mthree.stocksimulator.model.User;
+import org.springframework.stereotype.Service;
 
 /**
  *
  * @author gabri
  */
-public class UserServiceImpl implements UserService {
-    private final UserDao userDao;
-    // Active user. Might not be needed.
-    private User user;
+@Service
+public class UserServiceImpl {
 
-    public UserServiceImpl(UserDao userDao) {
+    private final UserDaoImpl userDao;
+
+    public UserServiceImpl(UserDaoImpl userDao) {
         this.userDao = userDao;
     }
-    
-    
+
+    // Create a new user with a set starting balance
+    public User createUser(String userName, BigDecimal startingBalance) {
+        BigDecimal balance = startingBalance.setScale(2, RoundingMode.HALF_UP);
+        User user = userDao.createUser(userName, balance);
+        System.out.println("Created user: " + userName + " with balance: " + balance);
+        return user;
+    }
+
+    // Get a single user by uid
+    public User getUser(int uid) {
+        return userDao.getUser(uid);
+    }
+
+    // Get all users
+    public List<User> getAllUsers() {
+        return userDao.getAllUsers();
+    }
 }
