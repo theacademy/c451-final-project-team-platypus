@@ -8,6 +8,9 @@ import java.math.BigDecimal;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
+import mthree.stocksimulator.dao.mappers.StockPriceSnapshotMapper;
+import mthree.stocksimulator.dao.mappers.UserMapper;
+import mthree.stocksimulator.model.StockPriceSnapshot;
 import mthree.stocksimulator.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -19,7 +22,7 @@ import org.springframework.stereotype.Repository;
  * @author gabri
  */
 @Repository
-public class UserDaoImpl {
+public class UserDaoImpl implements UserDao {
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -28,78 +31,75 @@ public class UserDaoImpl {
     }
 
     // Create a new user with a starting balance
-    public User createUser(String userName, BigDecimal startingBalance) {
+    @Override
+    public User createUser(User user) {
         String sql = "INSERT INTO User (userName, accountBal) VALUES (?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, userName);
-            ps.setBigDecimal(2, startingBalance);
+            ps.setString(1, user.getUserName());
+            ps.setBigDecimal(2, user.getAccountBal());
             return ps;
         }, keyHolder);
 
-        int newUid = keyHolder.getKey().intValue();
-        return new User(newUid, userName, startingBalance);
+        user.setUid(keyHolder.getKey().intValue());
+        return user;
     }
 
     // Get a user by their uid
+    @Override
     public User getUser(int uid) {
         String sql = "SELECT uid, userName, accountBal FROM User WHERE uid = ?";
-        return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> new User(
-                rs.getInt("uid"),
-                rs.getString("userName"),
-                rs.getBigDecimal("accountBal")
-        ), uid);
+        return jdbcTemplate.queryForObject(sql, new UserMapper(), uid);
     }
 
     // Get all users
+    @Override
     public List<User> getAllUsers() {
         String sql = "SELECT uid, userName, accountBal FROM User";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new User(
-                rs.getInt("uid"),
-                rs.getString("userName"),
-                rs.getBigDecimal("accountBal")
-        ));
+        return jdbcTemplate.query(sql, new UserMapper());
     }
 
     // Deduct an amount from the user's balance
+    @Override
     public void deductBalance(int uid, BigDecimal amount) {
         String sql = "UPDATE User SET accountBal = accountBal - ? WHERE uid = ?";
         jdbcTemplate.update(sql, amount, uid);
     }
 
     // Add an amount to the user's balance
+    @Override
     public void addBalance(int uid, BigDecimal amount) {
         String sql = "UPDATE User SET accountBal = accountBal + ? WHERE uid = ?";
         jdbcTemplate.update(sql, amount, uid);
     }
 
-    // Insert or update a user's stock position
-    // profitIfSold accumulates as more shares are bought
-    public void upsertUserStock(int uid, int sid, int quantity, BigDecimal profitIfSold) {
+    // Insert or update a user's stock position with new stock
+    @Override
+    public void addUserStock(int uid, int sid, int quantity) {
         String sql = """
-                INSERT INTO user_stocks (User_uid, Stock_sid, ownedStock, profitIfSold)
+                INSERT INTO user_stocks (User_uid, Stock_sid, ownedStock)
                 VALUES (?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     ownedStock = ownedStock + VALUES(ownedStock),
-                    profitIfSold = profitIfSold + VALUES(profitIfSold)
                 """;
-        jdbcTemplate.update(sql, uid, sid, quantity, profitIfSold);
+        jdbcTemplate.update(sql, uid, sid, quantity);
     }
 
-    // Remove shares from a user's position (used on sell)
-    public void reduceUserStock(int uid, int sid, int quantity, BigDecimal profitReduction) {
+    // change owned shares from a user's position (used on sell)
+    @Override
+    public void removeUserStock(int uid, int sid, int quantity) {
         String sql = """
                 UPDATE user_stocks
                 SET ownedStock = ownedStock - ?,
-                    profitIfSold = profitIfSold - ?
                 WHERE User_uid = ? AND Stock_sid = ?
                 """;
-        jdbcTemplate.update(sql, quantity, profitReduction, uid, sid);
+        jdbcTemplate.update(sql, quantity, uid, sid);
     }
 
     // Get how many shares a user owns of a specific stock
+    @Override
     public int getOwnedShares(int uid, int sid) {
         String sql = "SELECT ownedStock FROM user_stocks WHERE User_uid = ? AND Stock_sid = ?";
         Integer result = jdbcTemplate.queryForObject(sql, Integer.class, uid, sid);

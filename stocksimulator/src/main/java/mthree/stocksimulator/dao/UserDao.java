@@ -4,10 +4,29 @@
  */
 package mthree.stocksimulator.dao;
 
+import java.math.BigDecimal;
+import java.util.List;
+import mthree.stocksimulator.model.User;
+
 /**
  *
  * @author gabri
  */
 public interface UserDao {
     
+    public User createUser(User user);
+    
+    public User getUser(int uid);
+    
+    public List<User> getAllUsers();
+    
+    public void deductBalance(int uid, BigDecimal amount);
+    
+    public void addBalance(int uid, BigDecimal amount);
+    
+    public void addUserStock(int uid, int sid, int quantity);
+    
+    public void removeUserStock(int uid, int sid, int quantity);
+   
+    public int getOwnedShares(int uid, int sid);
 }

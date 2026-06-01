@@ -7,6 +7,7 @@ package mthree.stocksimulator.service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import mthree.stocksimulator.dao.UserDao;
 import mthree.stocksimulator.dao.UserDaoImpl;
 import mthree.stocksimulator.model.User;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserServiceImpl {
 
-    private final UserDaoImpl userDao;
+    private final UserDao userDao;
 
     public UserServiceImpl(UserDaoImpl userDao) {
         this.userDao = userDao;
@@ -26,9 +27,14 @@ public class UserServiceImpl {
 
     // Create a new user with a set starting balance
     public User createUser(String userName, BigDecimal startingBalance) {
+        User user = new User();
         BigDecimal balance = startingBalance.setScale(2, RoundingMode.HALF_UP);
-        User user = userDao.createUser(userName, balance);
-        System.out.println("Created user: " + userName + " with balance: " + balance);
+        user.setUserName(userName);
+        user.setAccountBal(balance);
+        
+        //add to db and set uid
+        user = userDao.createUser(user);
+        //System.out.println("Created user: " + userName + " with balance: " + balance);
         return user;
     }
 
