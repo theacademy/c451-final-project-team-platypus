@@ -8,6 +8,7 @@
  */
 
 USE stocksimulator;
+SET FOREIGN_KEY_CHECKS = 0;
 
 TRUNCATE User;
 INSERT INTO User (userName, accountBal) VALUES ('admin', 100000.00);
@@ -18,3 +19,5 @@ INSERT INTO Stock (stockName, stockCode) VALUES ('Microsoft', 'MSFT');
 INSERT INTO Stock (stockName, stockCode) VALUES ('IBM', 'IBM');
 INSERT INTO Stock (stockName, stockCode) VALUES ('Nvidia', 'NVDA');
 INSERT INTO Stock (stockName, stockCode) VALUES ('Dell', 'DELL');
+
+SET FOREIGN_KEY_CHECKS = 1;
