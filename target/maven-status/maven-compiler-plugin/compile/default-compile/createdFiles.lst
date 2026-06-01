@@ -1,0 +1,12 @@
+com\stocksimulator\alphademo\dao\StockDao.class
+com\stocksimulator\alphademo\dao\StockDaoImpl.class
+com\stocksimulator\alphademo\dao\UserDaoImpl.class
+com\stocksimulator\alphademo\service\StockServiceImpl.class
+com\stocksimulator\alphademo\model\Stock.class
+com\stocksimulator\alphademo\service\StockService.class
+com\stocksimulator\alphademo\service\UserService.class
+com\stocksimulator\alphademo\AlphaDemoApplication.class
+com\stocksimulator\alphademo\model\User.class
+com\stocksimulator\alphademo\cli\SimulatorCLI.class
+com\stocksimulator\alphademo\service\UserServiceImpl.class
+com\stocksimulator\alphademo\dao\UserDao.class
