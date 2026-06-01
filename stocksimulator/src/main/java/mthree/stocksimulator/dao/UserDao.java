@@ -17,7 +17,14 @@ public interface UserDao {
     public User createUser(User user);
     
     public User getUser(int uid);
-    
+
+    /**
+     * Look up a user by their (unique) username. Returns null if none.
+     * @param userName
+     * @return the User, or null if no user has that name
+     */
+    public User getUserByUserName(String userName);
+
     public List<User> getAllUsers();
     
     public void updateUserName(int uid, String newName);

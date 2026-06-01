@@ -1,6 +1,7 @@
 package mthree.stocksimulator.cli;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import mthree.stocksimulator.service.UserServiceImpl;
  * @author jerem
  */
 @Component
+@Profile("cli")
 public class SimulatorCLI implements CommandLineRunner {
 
     private final SimServiceImpl stockService;

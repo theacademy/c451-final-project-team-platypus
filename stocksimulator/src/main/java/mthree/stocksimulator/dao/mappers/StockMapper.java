@@ -16,13 +16,29 @@ import org.springframework.jdbc.core.RowMapper;
 public class StockMapper implements RowMapper<Stock> {
     @Override
     public Stock mapRow(ResultSet rs, int rowNum) throws SQLException {
-        
+
         //sid, stockName, stockCode
         Stock stock = new Stock();
-        stock.setSid(rs.getInt("uid"));
-        stock.setStockName(rs.getString("userName"));
+        stock.setSid(rs.getInt("sid"));
+        stock.setStockName(rs.getString("stockName"));
         stock.setStockCode(rs.getString("stockCode"));
-            
+
+        // stockPrice is only present when the query joins Stock_history
+        if (hasColumn(rs, "stockPrice")) {
+            stock.setStockPrice(rs.getBigDecimal("stockPrice"));
+        }
+
         return stock;
+    }
+
+    private boolean hasColumn(ResultSet rs, String column) throws SQLException {
+        java.sql.ResultSetMetaData meta = rs.getMetaData();
+        int count = meta.getColumnCount();
+        for (int i = 1; i <= count; i++) {
+            if (column.equalsIgnoreCase(meta.getColumnLabel(i))) {
+                return true;
+            }
+        }
+        return false;
     }  
 }

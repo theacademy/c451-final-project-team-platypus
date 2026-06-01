@@ -4,23 +4,33 @@ import Footer from '../../components/Footer'
 import MultiDevice from '../../assets/Multi_Device.png'
 import { useState } from 'react'
 import axios from 'axios'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { saveUser } from '../../lib/session'
 
 const Register = () => {
-  let [email, setEmail] = useState('')
+  let [userName, setUserName] = useState('')
   let [password, setPassword] = useState('')
   let [showPassword, setShowPassword] = useState(false)
+  let [error, setError] = useState('')
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setError('')
 
     try {
-      await axios.post('/api/users', {
-        email,
-        password,
-      })
-    } catch (error) {
-      console.error(error)
+      // Username-only auth: password is collected but not sent. The backend
+      // assigns a default starting balance when none is provided.
+      const res = await axios.post('/api/users', { userName })
+      saveUser(res.data)
+      navigate('/Dashboard')
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        setError('That username is already taken.')
+      } else {
+        setError('Registration failed. Please try again.')
+      }
+      console.error(err)
     }
   }
 
@@ -58,16 +68,17 @@ const Register = () => {
             </div>
             <form className="flex flex-col" onSubmit={handleSubmit}>
               <label className="flex flex-col gap-2">
-                Email
+                Username
                 <input
                   className="rounded-lg p-3 bg-gray-700 mb-5"
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter username"
                   type="text"
                 />
               </label>
 
-              <label
+              {/* <label
                 htmlFor="current-password"
                 className="block text-sm mb-2 dark:text-white"
               >
@@ -80,10 +91,10 @@ const Register = () => {
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-              />
+              /> */}
 
               {/* Checkbox */}
-              <div className="flex mb-4">
+              {/* <div className="flex mb-4">
                 <input
                   id="show-password-checkbox"
                   type="checkbox"
@@ -97,12 +108,13 @@ const Register = () => {
                 >
                   Show password
                 </label>
-              </div>
-              {/* <div className="mb-5 text-gray-400">
-                By signing up, you agree to our Terms of Service and Privacy
-                Policy.
               </div> */}
-              <label className="flex flex-col">
+
+              {error && (
+                <div className="mb-4 text-red-400 text-sm">{error}</div>
+              )}
+
+              <label className="flex flex-col mt-5">
                 <button
                   type="submit"
                   className="text-white bg-indigo-500 rounded-lg p-3 mb-5 hover:bg-indigo-700 duration-250"

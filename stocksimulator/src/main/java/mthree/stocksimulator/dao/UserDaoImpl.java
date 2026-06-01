@@ -51,6 +51,14 @@ public class UserDaoImpl implements UserDao {
         String sql = "SELECT uid, userName, accountBal FROM User WHERE uid = ?";
         return jdbcTemplate.queryForObject(sql, new UserMapper(), uid);
     }
+
+    // Get a user by their username (null if not found)
+    @Override
+    public User getUserByUserName(String userName) {
+        String sql = "SELECT uid, userName, accountBal FROM User WHERE userName = ?";
+        List<User> users = jdbcTemplate.query(sql, new UserMapper(), userName);
+        return users.isEmpty() ? null : users.get(0);
+    }
     
     // Update user name
     @Override
@@ -85,9 +93,9 @@ public class UserDaoImpl implements UserDao {
     public void addUserStock(int uid, int sid, int quantity) {
         String sql = """
                 INSERT INTO user_stocks (User_uid, Stock_sid, ownedStock)
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?)
                 ON DUPLICATE KEY UPDATE
-                    ownedStock = ownedStock + VALUES(ownedStock),
+                    ownedStock = ownedStock + VALUES(ownedStock)
                 """;
         jdbcTemplate.update(sql, uid, sid, quantity);
     }
@@ -97,7 +105,7 @@ public class UserDaoImpl implements UserDao {
     public void removeUserStock(int uid, int sid, int quantity) {
         String sql = """
                 UPDATE user_stocks
-                SET ownedStock = ownedStock - ?,
+                SET ownedStock = ownedStock - ?
                 WHERE User_uid = ? AND Stock_sid = ?
                 """;
         jdbcTemplate.update(sql, quantity, uid, sid);
@@ -106,7 +114,7 @@ public class UserDaoImpl implements UserDao {
     // Get how many shares a user owns of a specific stock
     @Override
     public int getOwnedShares(int uid, int sid) {
-        String sql = "SELECT ownedStock FROM user_stocks WHERE User_uid = ? AND Stock_sid = ?";
+        String sql = "SELECT COALESCE(SUM(ownedStock), 0) FROM user_stocks WHERE User_uid = ? AND Stock_sid = ?";
         Integer result = jdbcTemplate.queryForObject(sql, Integer.class, uid, sid);
         return result != null ? result : 0;
     }

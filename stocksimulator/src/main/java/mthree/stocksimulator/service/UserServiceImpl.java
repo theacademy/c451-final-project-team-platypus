@@ -42,6 +42,11 @@ public class UserServiceImpl {
         return userDao.getUser(uid);
     }
 
+    // Look up a user by username (used for username-only login). Null if absent.
+    public User getUserByUserName(String userName) {
+        return userDao.getUserByUserName(userName);
+    }
+
     // Get all users
     public List<User> getAllUsers() {
         return userDao.getAllUsers();

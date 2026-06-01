@@ -12,6 +12,7 @@ public class Stock {
     private int sid;
     private String stockName;
     private String stockCode;
+    private java.math.BigDecimal stockPrice;
 
     public Stock() {}
 
@@ -37,5 +38,13 @@ public class Stock {
 
     public void setStockCode(String stockCode) {
         this.stockCode = stockCode;
+    }
+
+    public java.math.BigDecimal getStockPrice() {
+        return stockPrice;
+    }
+
+    public void setStockPrice(java.math.BigDecimal stockPrice) {
+        this.stockPrice = stockPrice;
     }
 }

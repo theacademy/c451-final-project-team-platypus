@@ -58,18 +58,27 @@ public class SimServiceImpl implements SimService {
         tradingDays = new ArrayList<>(stockDao.getAllTradingDays());
 }
 
+    // In web mode no CommandLineRunner pre-loads the days, so load on first use.
+    private void ensureTradingDaysLoaded() {
+        if (tradingDays == null) {
+            loadTradingDays();
+        }
+    }
+
     public void advanceTime(int days) {
+        ensureTradingDaysLoaded();
         currentIndex = Math.min(currentIndex + days, tradingDays.size() - 1);
     }
     
     
     public String getDate() {
+        ensureTradingDaysLoaded();
         return tradingDays.get(currentIndex);
     }
     
     public Stock getStock(int sid) {
         try {
-            return stockDao.getStock(sid, getDate());
+            return stockDao.getStock(sid);
         } catch (EmptyResultDataAccessException e) {
             System.out.println("No price data found for sid " + sid + " on " + getDate());
             return null;
@@ -100,7 +109,12 @@ public class SimServiceImpl implements SimService {
                 File localJson = new File("mock_" + symbol.toLowerCase() + "_data.json");
                 if (localJson.exists()) {
                     ObjectMapper fallbackMapper = new ObjectMapper();
-                    rootNode = fallbackMapper.readTree(localJson);
+                    try {
+                        rootNode = fallbackMapper.readTree(localJson);
+                    } catch (java.io.IOException e) {
+                        System.out.println("Failed to read local file for " + symbol + ": " + e.getMessage());
+                        return;
+                    }
                 } else {
                     System.out.println("Local file not found. Aborting data fetch for " + symbol);
                     return;
@@ -153,8 +167,8 @@ public class SimServiceImpl implements SimService {
         // 4. Deduct balance
         userDao.deductBalance(uid, totalCost);
 
-        // 5. Insert or update user_stocks — profitIfSold = current value of shares
-        userDao.upsertUserStock(uid, sid, quantity, totalCost);
+        // 5. Insert or update the user's position in user_stocks
+        userDao.addUserStock(uid, sid, quantity);
 
         return "Successfully purchased " + quantity + " share(s) of sid " + sid
              + " for " + totalCost + ". Remaining balance: " + user.getAccountBal().subtract(totalCost);
@@ -177,27 +191,14 @@ public class SimServiceImpl implements SimService {
         BigDecimal saleValue = stockPrice.multiply(BigDecimal.valueOf(quantity))
                                          .setScale(4, RoundingMode.HALF_UP);
 
-        // 4. Calculate proportional profitIfSold reduction
-        // e.g. if user owns 10 shares and sells 4, reduce profitIfSold by 40%
-        BigDecimal proportion = BigDecimal.valueOf(quantity)
-                                          .divide(BigDecimal.valueOf(ownedShares), 4, RoundingMode.HALF_UP);
-        BigDecimal currentProfit = stockDao.getProfitIfSold(uid, sid);
-        BigDecimal profitReduction = currentProfit.multiply(proportion)
-                                                  .setScale(4, RoundingMode.HALF_UP);
-
-        // 5. Add sale value to user balance
+        // 4. Add sale value to user balance
         userDao.addBalance(uid, saleValue);
 
-        // 6. Reduce shares and profitIfSold
-        userDao.reduceUserStock(uid, sid, quantity, profitReduction);
+        // 5. Reduce owned shares
+        userDao.removeUserStock(uid, sid, quantity);
 
         return "Successfully sold " + quantity + " share(s) of sid " + sid
-             + " for " + saleValue + ". Profit/Loss on sold shares: "
-             + saleValue.subtract(profitReduction);
-    }
-    
-    public List<Stock> getStocksFromLast7Days() {
-        return stockDao.getStocksFromLast7Days(getDate());
+             + " for " + saleValue + ".";
     }
     
     public List<Stock> getOwnedStocks(int uid) {
@@ -210,9 +211,14 @@ public class SimServiceImpl implements SimService {
     
     public List<Stock[]> getStocksWithPriceChange() {
         return stockDao.getStocksWithPriceChange(getDate());
+    }
+
+    public List<java.util.Map<String, Object>> getPriceHistory(int sid) {
+        return stockDao.getPriceHistory(sid, getDate());
     }   
     
     public boolean isSimulationOver() {
+        ensureTradingDaysLoaded();
         return currentIndex >= tradingDays.size() - 1;
     }
 }

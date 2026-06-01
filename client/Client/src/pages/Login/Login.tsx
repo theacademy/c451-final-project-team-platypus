@@ -4,23 +4,32 @@ import Footer from '../../components/Footer'
 import MultiDevice from '../../assets/Multi_Device.png'
 import { useState } from 'react'
 import axios from 'axios'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { saveUser } from '../../lib/session'
 
 const Login = () => {
-  let [email, setEmail] = useState('')
+  let [userName, setUserName] = useState('')
   let [password, setPassword] = useState('')
   let [showPassword, setShowPassword] = useState(false)
+  let [error, setError] = useState('')
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setError('')
 
     try {
-      await axios.post('/api/users', {
-        email,
-        password,
-      })
-    } catch (error) {
-      console.error(error)
+      // Username-only auth: password is collected but not sent (no password column).
+      const res = await axios.post('/api/users/login', { userName })
+      saveUser(res.data)
+      navigate('/Dashboard')
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 404) {
+        setError('No account found with that username.')
+      } else {
+        setError('Login failed. Please try again.')
+      }
+      console.error(err)
     }
   }
 
@@ -52,7 +61,7 @@ const Login = () => {
             <div className="flex gap-1">
               <div className="opacity-50">Don't have an account?</div>
               <Link
-                to="/Login"
+                to="/Register"
                 className="font-bold text-indigo-500 underline hover:text-indigo-700 hover:no-underline duration-250 mb-10"
               >
                 sign up here
@@ -60,11 +69,12 @@ const Login = () => {
             </div>
             <form className="flex flex-col" onSubmit={handleSubmit}>
               <label className="flex flex-col gap-2">
-                Email
+                Username
                 <input
                   className="rounded-lg p-3 bg-gray-700 mb-5"
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter email"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  placeholder="Enter username"
                   type="text"
                 />
               </label>
@@ -100,10 +110,11 @@ const Login = () => {
                   Show password
                 </label>
               </div>
-              {/* <div className="mb-5 text-gray-400">
-                By signing up, you agree to our Terms of Service and Privacy
-                Policy.
-              </div> */}
+
+              {error && (
+                <div className="mb-4 text-red-400 text-sm">{error}</div>
+              )}
+
               <label className="flex flex-col">
                 <button
                   type="submit"
