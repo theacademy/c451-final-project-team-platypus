@@ -9,6 +9,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import mthree.stocksimulator.dao.UserDao;
 import mthree.stocksimulator.model.User;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Service;
  * @author gabri
  */
 @Service
-public class UserServiceImpl {
+public class UserServiceImpl implements UserService {
 
     private final UserDao userDao;
 
@@ -25,6 +26,7 @@ public class UserServiceImpl {
     }
 
     // Create a new user with a set starting balance
+    @Override
     public User createUser(String userName, BigDecimal startingBalance) {
         User user = new User();
         BigDecimal balance = startingBalance.setScale(2, RoundingMode.HALF_UP);
@@ -38,12 +40,31 @@ public class UserServiceImpl {
     }
 
     // Get a single user by uid
+    @Override
     public User getUser(int uid) {
         return userDao.getUser(uid);
     }
 
     // Get all users
+    @Override
     public List<User> getAllUsers() {
         return userDao.getAllUsers();
     }
+
+    @Override
+    public void deleteUser(int uid) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public User lookupUser(String userName) throws EmptyResultDataAccessException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void resetUserBalance(int bal) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+    
+    
 }

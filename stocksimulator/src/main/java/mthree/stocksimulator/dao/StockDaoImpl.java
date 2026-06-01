@@ -117,4 +117,9 @@ public class StockDaoImpl implements StockDao{
 
             return jdbcTemplate.query(sql, new StockPriceSnapshotMapper() , currentDate, currentDate, currentDate, currentDate, currentDate);
         }
+
+    @Override
+    public void updateUserStock(int uid, int sid, int quantity) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
 }

@@ -46,4 +46,13 @@ public interface StockDao {
      * @return List of StockPriceSnapshots containing needed data
      */
     public List<StockPriceSnapshot> getStocksWithPriceChange(String currentDate);
+    
+    /**
+     * update stock_history with new information of stock bought/sold. If quantity is negative, assume its sold
+     * @param uid
+     * @param sid
+     * @param quantity 
+     */
+    public void updateUserStock(int uid, int sid, int quantity);
+    
 }

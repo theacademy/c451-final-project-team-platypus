@@ -70,6 +70,9 @@ public class App {
                 System.err.println(e.getMessage());
                 System.exit(1);
             }
+            
+            throw new UnsupportedOperationException("Please implement user persistence first!");
+            //TODO: Store added users into a file and then load that file up since user additions arent actually persisted as the database wipes itself on startup
         }
         
         public void fetchAndStoreSymbolData(Stock stock) throws RuntimeException{

@@ -22,9 +22,7 @@ public interface UserDao {
     
     public void updateUserName(int uid, String newName);
     
-    public void deductBalance(int uid, BigDecimal amount);
-    
-    public void addBalance(int uid, BigDecimal amount);
+    public void updateBalance(int uid, BigDecimal amount);
     
     public void addUserStock(int uid, int sid, int quantity);
     

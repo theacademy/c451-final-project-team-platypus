@@ -68,14 +68,7 @@ public class UserDaoImpl implements UserDao {
 
     // Deduct an amount from the user's balance
     @Override
-    public void deductBalance(int uid, BigDecimal amount) {
-        String sql = "UPDATE User SET accountBal = accountBal - ? WHERE uid = ?";
-        jdbcTemplate.update(sql, amount, uid);
-    }
-
-    // Add an amount to the user's balance
-    @Override
-    public void addBalance(int uid, BigDecimal amount) {
+    public void updateBalance(int uid, BigDecimal amount) {
         String sql = "UPDATE User SET accountBal = accountBal + ? WHERE uid = ?";
         jdbcTemplate.update(sql, amount, uid);
     }
