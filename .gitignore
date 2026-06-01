@@ -26,3 +26,5 @@ dist-ssr
 
 model.mwb
 model.mwb.bak
+
+application-local.properties
