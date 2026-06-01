@@ -11,16 +11,12 @@ import java.math.BigDecimal;
  * @author gabri
  */
 public class User {
-    private final int uid;
-    private final String userName;
+    private int uid;
+    private String userName;
     // Make sure the rounding mode is set correctly for this!
-    private final BigDecimal accountBal;
+    private BigDecimal accountBal;
 
-    public User(int uid, String userName, BigDecimal accountBal) {
-        this.uid = uid;
-        this.userName = userName;
-        this.accountBal = accountBal;
-    }
+    public User() {}
 
     public int getUid() {
         return uid;
@@ -32,6 +28,18 @@ public class User {
 
     public BigDecimal getAccountBal() {
         return accountBal;
+    }
+
+    public void setUid(int uid) {
+        this.uid = uid;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public void setAccountBal(BigDecimal accountBal) {
+        this.accountBal = accountBal;
     }
     
     

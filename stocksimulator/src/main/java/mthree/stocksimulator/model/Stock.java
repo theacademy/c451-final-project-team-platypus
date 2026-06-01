@@ -11,18 +11,11 @@ import java.math.BigDecimal;
  * @author gabri
  */
 public class Stock {
-    private final int sid;
-    private final String stockName;
-    private final String stockCode;
-    //Make sure that you set the rounding mode to this correctly! It's DECIMAL(10,4) in the db
-    private final BigDecimal stockPrice;
+    private int sid;
+    private String stockName;
+    private String stockCode;
 
-    public Stock(int sid, String stockName, String stockCode, BigDecimal stockPrice) {
-        this.sid = sid;
-        this.stockName = stockName;
-        this.stockCode = stockCode;
-        this.stockPrice = stockPrice;
-    }
+    public Stock() {}
 
     public int getSid() {
         return sid;
@@ -36,7 +29,15 @@ public class Stock {
         return stockCode;
     }
 
-    public BigDecimal getStockPrice() {
-        return stockPrice;
+    public void setSid(int sid) {
+        this.sid = sid;
+    }
+
+    public void setStockName(String stockName) {
+        this.stockName = stockName;
+    }
+
+    public void setStockCode(String stockCode) {
+        this.stockCode = stockCode;
     }
 }
