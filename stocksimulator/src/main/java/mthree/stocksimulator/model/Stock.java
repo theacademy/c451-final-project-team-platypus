@@ -4,8 +4,6 @@
  */
 package mthree.stocksimulator.model;
 
-import java.math.BigDecimal;
-
 /**
  *
  * @author gabri
