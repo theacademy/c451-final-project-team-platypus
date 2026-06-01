@@ -12,8 +12,8 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import mthree.stocksimulator.dao.StockDaoImpl;
-import mthree.stocksimulator.dao.UserDaoImpl;
+import mthree.stocksimulator.dao.StockDao;
+import mthree.stocksimulator.dao.UserDao;
 import mthree.stocksimulator.model.Stock;
 import mthree.stocksimulator.model.User;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,8 +35,8 @@ public class SimServiceImpl implements SimService {
     private static final String START_DATE = "2000-01-01";
     private static final String END_DATE = "2020-01-01";
 
-    private final StockDaoImpl stockDao;
-    private final UserDaoImpl userDao;
+    private final StockDao stockDao;
+    private final UserDao userDao;
     private final WebClient webClient;
     
     public int currentIndex = 0; // keeps track of current date
@@ -44,7 +44,7 @@ public class SimServiceImpl implements SimService {
     
     
 
-    public SimServiceImpl(StockDaoImpl stockDao, UserDaoImpl userDao, WebClient.Builder webClientBuilder) {
+    public SimServiceImpl(StockDao stockDao, UserDao userDao, WebClient.Builder webClientBuilder) {
         this.stockDao = stockDao;
         this.userDao = userDao;
         this.webClient = webClientBuilder
@@ -77,7 +77,6 @@ public class SimServiceImpl implements SimService {
 }
     
     public void fetchAndStoreSymbol(String symbol) {
-        try {
             System.out.println("Fetching data for " + symbol + " via WebClient...");
 
             // 1. Fetch and parse via WebClient
@@ -132,11 +131,6 @@ public class SimServiceImpl implements SimService {
             } else {
                 System.out.println("-> No valid dates found in the specified range for " + symbol);
             }
-
-        } catch (Exception e) {
-            System.out.println("Network or parsing error encountered for: " + symbol);
-            e.printStackTrace();
-        }
     }
     
     public String buyStock(int uid, int sid, int quantity) {

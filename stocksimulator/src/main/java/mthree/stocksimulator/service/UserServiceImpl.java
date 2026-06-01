@@ -8,7 +8,6 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import mthree.stocksimulator.dao.UserDao;
-import mthree.stocksimulator.dao.UserDaoImpl;
 import mthree.stocksimulator.model.User;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +20,7 @@ public class UserServiceImpl {
 
     private final UserDao userDao;
 
-    public UserServiceImpl(UserDaoImpl userDao) {
+    public UserServiceImpl(UserDao userDao) {
         this.userDao = userDao;
     }
 
