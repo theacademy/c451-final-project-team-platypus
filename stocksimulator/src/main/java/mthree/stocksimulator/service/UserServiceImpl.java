@@ -65,6 +65,4 @@ public class UserServiceImpl implements UserService {
     public void resetUserBalance(int bal) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-    
-    
 }
