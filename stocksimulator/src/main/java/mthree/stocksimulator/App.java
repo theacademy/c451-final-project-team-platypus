@@ -66,7 +66,7 @@ public class App {
                     fetchAndStoreSymbolData(stock);
                 }
             } catch (RuntimeException e) {
-                System.err.println("Encountered error while loading data from API! Terminating program!");
+                System.err.println("Encountered error while loading data from API! Terminating!");
                 System.err.println(e.getMessage());
                 System.exit(1);
             }
