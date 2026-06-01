@@ -6,8 +6,9 @@ package mthree.stocksimulator.dao;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import mthree.stocksimulator.dao.mappers.StockMapper;
 import mthree.stocksimulator.dao.mappers.StockPriceSnapshotMapper;
 import mthree.stocksimulator.model.Stock;
@@ -28,20 +29,23 @@ public class StockDaoImpl implements StockDao{
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @Override
     public List<String> getAllTradingDays() {
         String sql = "SELECT DISTINCT DATE_FORMAT(date, '%Y-%m-%d') AS tradingDay FROM Stock_history ORDER BY tradingDay ASC";
         return jdbcTemplate.queryForList(sql, String.class);
     }
 
-    public Stock getStock(int sid, String date) {
-        String sql = """
-                SELECT s.sid, s.stockName, s.stockCode
-                FROM Stock s
-                JOIN Stock_history sh ON s.sid = sh.Stock_sid
-                WHERE s.sid = ? AND DATE(sh.date) = ?
-                """;
+    @Override
+    public Stock getStock(int sid) {
+        String sql = "SELECT * FROM Stock WHERE sid = ?";
 
-        return jdbcTemplate.queryForObject(sql, new StockMapper(), sid, date);
+        return jdbcTemplate.queryForObject(sql, new StockMapper(), sid);
+    }
+    
+    @Override
+    public BigDecimal getStockPrice(int sid, String currentDate){
+        String sql = "SELECT stockPrice FROM stock_history WHERE Stock_sid = ? AND date = ?";
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, sid, currentDate);
     }
     
     //Populate stock_history table with entries
@@ -63,30 +67,20 @@ public class StockDaoImpl implements StockDao{
         );
     }   
     
-    public List<Stock> getStocksFromLast7Days(String currentDate) {
-        String sql = """
-                SELECT s.sid, s.stockName, s.stockCode
-                FROM Stock s
-                JOIN Stock_history sh ON s.sid = sh.Stock_sid
-                WHERE sh.date <= ? AND sh.date >= DATE_SUB(?, INTERVAL 7 DAY)
-                ORDER BY s.stockCode, sh.date DESC
-                """;
+    @Override
+    public Map<Integer, Integer> getOwnedStocks(int uid) {
+        String sql = "SELECT stock_sid, ownedStock FROM stock_history WHERE uid = ?";
 
-        return jdbcTemplate.query(sql, new StockMapper(), currentDate, currentDate);
-    }
-    
-    public List<Stock> getOwnedStocks(int uid, String currentDate) {
-        String sql = """
-                SELECT s.sid, s.stockName, s.stockCode
-                FROM Stock s
-                JOIN user_stocks us ON s.sid = us.Stock_sid
-                JOIN Stock_history sh ON s.sid = sh.Stock_sid
-                WHERE us.User_uid = ? AND DATE(sh.date) = ?
-                """;
-
-        return jdbcTemplate.query(sql, new StockMapper(), uid, currentDate);
+        return jdbcTemplate.query(sql, rs -> {
+            Map<Integer, Integer> map = new HashMap<>();
+            while (rs.next()){
+                map.put(rs.getInt("stock_sid"), rs.getInt("ownedStock"));
+            }
+            return map;
+        }, uid);
     }
 
+    @Override
     public List<StockPriceSnapshot> getStocksWithPriceChange(String currentDate) {
             // Instead of 5 correlated subqueries per stock (which re-scans Stock_history
             // once per stock per period), we pre-compute one anchor date per period across
