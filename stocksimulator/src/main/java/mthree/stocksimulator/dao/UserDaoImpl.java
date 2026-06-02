@@ -81,40 +81,8 @@ public class UserDaoImpl implements UserDao {
         jdbcTemplate.update(sql, amount, uid);
     }
 
-
-    // Insert or update a user's stock position with new stock
-    @Override
-    public void addUserStock(int uid, int sid, int quantity) {
-        String sql = """
-                INSERT INTO user_stocks (User_uid, Stock_sid, ownedStock)
-                VALUES (?, ?, ?)
-                ON DUPLICATE KEY UPDATE
-                    ownedStock = ownedStock + VALUES(ownedStock)
-                """;
-        jdbcTemplate.update(sql, uid, sid, quantity);
-    }
-
-    // change owned shares from a user's position (used on sell)
-    @Override
-    public void removeUserStock(int uid, int sid, int quantity) {
-        String sql = """
-                UPDATE user_stocks
-                SET ownedStock = ownedStock - ?
-                WHERE User_uid = ? AND Stock_sid = ?
-                """;
-        jdbcTemplate.update(sql, quantity, uid, sid);
-    }
-
-    // Get how many shares a user owns of a specific stock
-    @Override
-    public int getOwnedShares(int uid, int sid) {
-        String sql = "SELECT COALESCE(SUM(ownedStock), 0) FROM user_stocks WHERE User_uid = ? AND Stock_sid = ?";
-        Integer result = jdbcTemplate.queryForObject(sql, Integer.class, uid, sid);
-        return result != null ? result : 0;
-    }
-
     // Reset a user's portfolio: clear all stocks, set balance
-    @Override
+    @Override 
     public void resetUser(int uid, BigDecimal balance) {
         jdbcTemplate.update("DELETE FROM user_stocks WHERE User_uid = ?", uid);
         jdbcTemplate.update("UPDATE User SET accountBal = ? WHERE uid = ?", balance, uid);
