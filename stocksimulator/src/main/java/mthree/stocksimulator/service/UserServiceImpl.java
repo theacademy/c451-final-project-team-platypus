@@ -25,6 +25,7 @@ public class UserServiceImpl implements UserService {
     }
 
     // Create a new user with a set starting balance
+    @Override
     public User createUser(String userName, BigDecimal startingBalance) {
         User user = new User();
         BigDecimal balance = startingBalance.setScale(2, RoundingMode.HALF_UP);
@@ -38,16 +39,19 @@ public class UserServiceImpl implements UserService {
     }
 
     // Get a single user by uid
+    @Override
     public User getUser(int uid) {
         return userDao.getUser(uid);
     }
 
     // Look up a user by username (used for username-only login). Null if absent.
+    @Override
     public User getUserByUserName(String userName) {
         return userDao.getUserByUserName(userName);
     }
 
     // Get all users
+    @Override
     public List<User> getAllUsers() {
         return userDao.getAllUsers();
     }
