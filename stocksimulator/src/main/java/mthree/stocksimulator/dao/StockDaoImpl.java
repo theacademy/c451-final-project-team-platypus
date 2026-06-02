@@ -92,12 +92,19 @@ public class StockDaoImpl implements StockDao{
     }
     
     @Override
-    public int getOwnedStocks(int uid, int sid) {
+    public Map<Integer, Integer> getAllOwnedStocks(int uid) {
         String sql = "SELECT ownedStock FROM stock_history WHERE uid = ? AND sid = ?";
 
         Integer ownedStocks = jdbcTemplate.queryForObject(sql, Integer.class, uid, sid);
         
         return ownedStocks != null ? ownedStocks : 0;
+    }
+    
+    @Override
+    public int getOwnedStock(int uid, int sid) {
+        String sql = "SELECT COALESCE(SUM(ownedStock), 0) FROM user_stocks WHERE User_uid = ? AND Stock_sid = ?";
+        Integer result = jdbcTemplate.queryForObject(sql, Integer.class, uid, sid);
+        return result != null ? result : 0;
     }
 
     @Override

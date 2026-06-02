@@ -33,20 +33,27 @@ public interface SimService {
     public Stock getStock(int sid) throws EmptyResultDataAccessException;
     
     /**
-     * get the price for the given stock and the given date
+     * get the current stock price
      * @param sid
-     * @param date must be a valid trading day
      * @return
      * @throws EmptyResultDataAccessException if no price was found for the stock, usually because the date is wrong
      */
-    public BigDecimal getStockPrice(int sid, String date) throws EmptyResultDataAccessException;
+    public BigDecimal getStockPrice(int sid) throws EmptyResultDataAccessException;
         
     /**
      * Gets the list of owned stock for the given user in a mapping of stock ids to number of stock owned for that company
      * @param uid
      * @return map of sid to owned stocks in that sid
      */
-    public Map<Integer,Integer> getOwnedStocks(int uid);
+    public Map<Integer,Integer> getAllOwnedStocks(int uid);
+    
+    /**
+     * Gets the amount of stock owned in a specific company by the specific user
+     * @param uid
+     * @param sid
+     * @return 
+     */
+    public int getOwnedStock(int uid, int sid);
     
     /**
      * Get price history of a given stock as a map
@@ -64,21 +71,15 @@ public interface SimService {
     public Map<String, BigDecimal> getPriceHistory(int sid, int days);
     
     /**
-     * Gets the amount of stock owned in a specific company by the specific user
-     * @param uid
-     * @param sid
-     * @return 
-     */
-    public int getOwnedShares(int uid, int sid);
-    
-    /**
      * Buys for the user stock in the given company. 
      * Does not update user balance
      * @param uid
      * @param sid
      * @param quantity 
+     * @return  
+     * @throws InvalidOrderException 
      */
-    public void buyStock(int uid, int sid, int quantity) throws InvalidOrderException;
+    public BigDecimal buyStock(int uid, int sid, int quantity) throws InvalidOrderException;
     
     /**
      * Sells the given amount of stock for the given company for the given user.
@@ -86,13 +87,16 @@ public interface SimService {
      * @param uid
      * @param sid
      * @param quantity
+     * @return 
+     * @throws InvalidOrderException
      */
-    public void sellStock(int uid, int sid, int quantity) throws InvalidOrderException;
+    public BigDecimal sellStock(int uid, int sid, int quantity) throws InvalidOrderException;
     
     /**
      * add/remove dollars from user account
      * @param uid
      * @param quantity 
+     * @throws InvalidOrderException 
      */
     public void updateUserBal(int uid, BigDecimal quantity) throws InvalidOrderException;
     

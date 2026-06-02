@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import mthree.stocksimulator.model.Stock;
 import mthree.stocksimulator.model.StockPriceSnapshot;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 /**
  *
@@ -26,20 +27,26 @@ public interface StockDao {
     public Stock getStock(int sid);
     
     /**
-     * Gets stock price for the given stock and the given date
+     * Gets current stock price for the given stock
      * @param sid
-     * @param currentDate
      * @return Stock price in BigDecimal format
      */
-    public BigDecimal getStockPrice(int sid, String currentDate);
+    public BigDecimal getStockPrice(int sid) throws EmptyResultDataAccessException;
     
     /**
-     * Gets a mapping of all owned stocks paired with the stock id
+     * Gets a mapping of all owned stocks by user
+     * @param uid
+     * @return owned stocks in a mapping of stockid to number of owned stock
+     */
+    public Map<Integer,Integer> getAllOwnedStocks(int uid);
+    
+    /**
+     * Get number of owned stock by a user in a specific company
      * @param uid
      * @param sid
-     * @return number of owned stock in company
+     * @return 
      */
-    public int getOwnedStocks(int uid, int sid);
+    public int getOwnedStock(int uid, int sid);
     
     /**
      * Obtain price changes for ALL stocks in last day, week, month, and year
