@@ -41,6 +41,8 @@ public interface UserDao {
 
     /**
      * Reset a user's portfolio: clear all owned stocks and set balance.
+     * @param uid
+     * @param balance
      */
-    public void resetUser(int uid, java.math.BigDecimal balance);
+    public void resetUser(int uid, BigDecimal balance);
 }
