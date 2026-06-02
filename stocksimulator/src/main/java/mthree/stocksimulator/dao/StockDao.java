@@ -56,12 +56,20 @@ public interface StockDao {
     public List<StockPriceSnapshot> getStocksWithPriceChange(String currentDate);
     
     /**
-     * update stock_history with new information of stock bought/sold. If quantity is negative, assume its sold
+     * add new stock acquiered to stock history
      * @param uid
      * @param sid
      * @param quantity 
      */
-    public void updateUserStock(int uid, int sid, int quantity);
+    public void addUserStock(int uid, int sid, int quantity);
+    
+    /**
+     * remove user stock from stock history
+     * @param uid
+     * @param sid
+     * @param quantity 
+     */
+    public void removeUserStock(int uid, int sid, int quantity);
 
     /**
      * Price history for one stock up to and including the given date, oldest

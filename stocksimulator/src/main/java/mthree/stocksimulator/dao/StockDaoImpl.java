@@ -144,10 +144,28 @@ public class StockDaoImpl implements StockDao{
 
             return jdbcTemplate.query(sql, new StockPriceSnapshotMapper() , currentDate, currentDate, currentDate, currentDate, currentDate);
         }
-    
+   
+    // Insert or update a user's stock position with new stock
     @Override
-    public void updateUserStock(int uid, int sid, int quantity) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void addUserStock(int uid, int sid, int quantity) {
+        String sql = """
+                INSERT INTO user_stocks (User_uid, Stock_sid, ownedStock)
+                VALUES (?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                    ownedStock = ownedStock + VALUES(ownedStock)
+                """;
+        jdbcTemplate.update(sql, uid, sid, quantity);
+    }
+
+    // change owned shares from a user's position (used on sell)
+    @Override
+    public void removeUserStock(int uid, int sid, int quantity) {
+        String sql = """
+                UPDATE user_stocks
+                SET ownedStock = ownedStock - ?
+                WHERE User_uid = ? AND Stock_sid = ?
+                """;
+        jdbcTemplate.update(sql, quantity, uid, sid);
     }
     
 }

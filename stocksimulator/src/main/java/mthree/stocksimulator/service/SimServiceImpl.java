@@ -100,14 +100,14 @@ public class SimServiceImpl implements SimService {
 
     @Override
     public BigDecimal buyStock(int uid, int sid, int quantity){
-        stockDao.updateUserStock(uid, sid, quantity);
+        stockDao.addUserStock(uid, sid, quantity);
         return stockDao.getStockPrice(sid).multiply(BigDecimal.valueOf(quantity)).negate(); //return money lost
     }
 
     @Override
     public BigDecimal sellStock(int uid, int sid, int quantity) throws InvalidOrderException{
         if (stockDao.getOwnedStock(uid, sid) < quantity) throw new InvalidOrderException("User does not have enough stocks in this company to sell!");
-        stockDao.updateUserStock(uid, sid, quantity); //sell the stock
+        stockDao.removeUserStock(uid, sid, quantity); //sell the stock
         return stockDao.getStockPrice(sid).multiply(BigDecimal.valueOf(quantity)); //return money made
     }
 

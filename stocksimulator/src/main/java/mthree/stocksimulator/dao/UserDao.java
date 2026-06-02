@@ -30,12 +30,6 @@ public interface UserDao {
     public void updateUserName(int uid, String newName);
     
     public void updateBalance(int uid, BigDecimal amount);
-    
-    public void addUserStock(int uid, int sid, int quantity);
-    
-    public void removeUserStock(int uid, int sid, int quantity);
-   
-    public int getOwnedShares(int uid, int sid);
 
     /**
      * Reset a user's portfolio: clear all owned stocks and set balance.
