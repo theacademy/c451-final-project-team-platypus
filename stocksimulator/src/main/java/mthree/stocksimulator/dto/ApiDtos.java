@@ -12,32 +12,8 @@ public final class ApiDtos {
 
     // ---- Auth ----
 
-    /** Login/register payload. password is accepted but unused (username-only auth). */
-    public record AuthRequest(String userName, String password, BigDecimal startingBalance) {}
-
-    public record UserDto(int uid, String userName, BigDecimal accountBal) {}
-
-    // ---- Stocks ----
-
-    /** A market row: current price plus % change over each period (null if no data). */
-    public record StockChangeDto(
-            int sid,
-            String stockCode,
-            String stockName,
-            BigDecimal price,
-            BigDecimal change1d,
-            BigDecimal change7d,
-            BigDecimal change30d,
-            BigDecimal change1y) {}
-
-    /** An owned position with current price and total value. */
-    public record OwnedStockDto(
-            int sid,
-            String stockCode,
-            String stockName,
-            BigDecimal price,
-            int shares,
-            BigDecimal value) {}
+    /** Login/register payload. */
+    public record AuthRequest(String userName, BigDecimal startingBalance) {}
 
     // ---- Trading ----
 
