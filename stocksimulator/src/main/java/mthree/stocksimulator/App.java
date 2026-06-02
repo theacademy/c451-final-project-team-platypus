@@ -39,7 +39,7 @@ public class App {
         @Value("${api.key}")
         private String API_KEY;
         
-        private JdbcTemplate jdbcTemplate;
+        private final JdbcTemplate jdbcTemplate;
         private final WebClient webClient;
         private static final String BASE_URL = "https://www.alphavantage.co";
         private static final String START_DATE = "2000-01-01";
@@ -124,6 +124,7 @@ public class App {
             } else {
                 System.out.println("-> No valid dates found in the specified range for " + stock.getStockCode());
             }
+            System.out.println("-> All data has been added to database.");
         }
     }
 }
