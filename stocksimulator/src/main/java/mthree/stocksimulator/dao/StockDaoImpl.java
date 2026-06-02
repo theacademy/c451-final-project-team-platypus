@@ -44,9 +44,9 @@ public class StockDaoImpl implements StockDao{
     }
     
     @Override
-    public BigDecimal getStockPrice(int sid, String currentDate) throws EmptyResultDataAccessException{
-        String sql = "SELECT stockPrice FROM Stock_history WHERE Stock_sid = ? AND DATE(date) = ?";
-        return jdbcTemplate.queryForObject(sql, BigDecimal.class, sid, currentDate);
+    public BigDecimal getStockPrice(int sid) throws EmptyResultDataAccessException{
+        String sql = "SELECT stockPrice FROM Stock_history WHERE Stock_sid = ?";
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, sid);
     }
     
     @Override
@@ -79,25 +79,30 @@ public class StockDaoImpl implements StockDao{
                 ORDER BY date ASC
                 """;
         return jdbcTemplate.query(sql, rs -> {
-        Map<String, BigDecimal> result = new LinkedHashMap<>();
+            Map<String, BigDecimal> result = new LinkedHashMap<>();
 
-        while (rs.next()) {
-            result.put(
-                rs.getString("date"),
-                rs.getBigDecimal("price")
-            );
-        }
-        return result;
+            while (rs.next()) {
+                result.put(
+                    rs.getString("date"),
+                    rs.getBigDecimal("price")
+                );
+            }
+            return result;
         }, sid, uptoDate, uptoDate, days);
     }
     
     @Override
     public Map<Integer, Integer> getAllOwnedStocks(int uid) {
-        String sql = "SELECT ownedStock FROM stock_history WHERE uid = ? AND sid = ?";
+        String sql = "SELECT (sid, ownedStock) FROM stock_history WHERE uid = ?";
 
-        Integer ownedStocks = jdbcTemplate.queryForObject(sql, Integer.class, uid, sid);
-        
-        return ownedStocks != null ? ownedStocks : 0;
+        return jdbcTemplate.query(sql, rs -> {
+            Map<Integer, Integer> result = new LinkedHashMap<>();
+            while (rs.next()) {
+                result.put(rs.getInt("sid"), rs.getInt("ownedStock"));
+            }
+            return result;
+        }, uid);
+       
     }
     
     @Override
