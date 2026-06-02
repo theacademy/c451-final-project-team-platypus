@@ -108,20 +108,37 @@ public class StockDaoImpl implements StockDao{
             return point;
         }, sid, uptoDate);
     }
+
+    @Override
+    public List<java.util.Map<String, Object>> getPriceHistory(int sid, String uptoDate, int days) {
+        String sql = """
+                SELECT DATE_FORMAT(date, '%Y-%m-%d') AS date, stockPrice AS price
+                FROM Stock_history
+                WHERE Stock_sid = ? AND DATE(date) <= ? AND DATE(date) >= DATE_SUB(?, INTERVAL ? DAY)
+                ORDER BY date ASC
+                """;
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            java.util.Map<String, Object> point = new java.util.LinkedHashMap<>();
+            point.put("date", rs.getString("date"));
+            point.put("price", rs.getBigDecimal("price"));
+            return point;
+        }, sid, uptoDate, uptoDate, days);
+    }
     
     @Override
     public List<Stock> getOwnedStocks(int uid, String currentDate) {
         // Owned stocks (ownedStock > 0) joined to their price as of currentDate.
         // Price = the most recent Stock_history row on or before currentDate.
+        // ownedStock is included so callers don't need a separate query per stock.
         String sql = """
-                SELECT s.sid, s.stockName, s.stockCode, h.stockPrice
+                SELECT s.sid, s.stockName, s.stockCode, us.ownedStock, h.stockPrice
                 FROM user_stocks us
                 JOIN Stock s ON s.sid = us.Stock_sid
                 JOIN Stock_history h ON h.Stock_sid = s.sid
-                    AND DATE(h.date) = (
-                        SELECT MAX(DATE(h2.date))
+                    AND h.date = (
+                        SELECT MAX(h2.date)
                         FROM Stock_history h2
-                        WHERE h2.Stock_sid = s.sid AND DATE(h2.date) <= ?
+                        WHERE h2.Stock_sid = s.sid AND h2.date <= CONCAT(?, ' 23:59:59')
                     )
                 WHERE us.User_uid = ? AND us.ownedStock > 0
                 ORDER BY s.stockCode

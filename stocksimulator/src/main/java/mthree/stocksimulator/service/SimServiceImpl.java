@@ -215,10 +215,19 @@ public class SimServiceImpl implements SimService {
 
     public List<java.util.Map<String, Object>> getPriceHistory(int sid) {
         return stockDao.getPriceHistory(sid, getDate());
+    }
+
+    public List<java.util.Map<String, Object>> getPriceHistory(int sid, int days) {
+        return stockDao.getPriceHistory(sid, getDate(), days);
     }   
     
     public boolean isSimulationOver() {
         ensureTradingDaysLoaded();
         return currentIndex >= tradingDays.size() - 1;
+    }
+
+    public void restartSimulation(int uid, java.math.BigDecimal startingBalance) {
+        currentIndex = 0;
+        userDao.resetUser(uid, startingBalance);
     }
 }

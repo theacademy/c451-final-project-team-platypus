@@ -1,94 +1,94 @@
-import React from 'react'
-import DashboardNav from '../../components/DashboardNav'
-import Footer from '../../components/Footer'
-import { useState, useEffect } from 'react'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
-import { getUser } from '../../lib/session'
+import React from "react";
+import DashboardNav from "../../components/DashboardNav";
+import Footer from "../../components/Footer";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { getUser } from "../../lib/session";
 
 interface Portfolio {
-  date: string
-  cash: number
-  stockValue: number
-  total: number
-  simulationOver: boolean
+  date: string;
+  cash: number;
+  stockValue: number;
+  total: number;
+  simulationOver: boolean;
 }
 
 interface OwnedStock {
-  sid: number
-  stockCode: string
-  stockName: string
-  price: number
-  shares: number
-  value: number
+  sid: number;
+  stockCode: string;
+  stockName: string;
+  price: number;
+  shares: number;
+  value: number;
 }
 
 const Dashboard = () => {
-  const navigate = useNavigate()
-  const user = getUser()
+  const navigate = useNavigate();
+  const user = getUser();
 
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
-  const [owned, setOwned] = useState<OwnedStock[]>([])
-  const [loading, setLoading] = useState(true)
-
-  // forex/crypto remain mock data for now (backend tracks stocks only)
-  const [forex] = useState([
-    { name: 'United States Dollar', abbr: 'USD', price: '25', change: '1.6' },
-    { name: 'British Pound', abbr: 'GBPD', price: '30', change: '3.4' },
-    { name: 'Japanese Yen', abbr: 'JPY', price: '5', change: '2.8' },
-  ])
-  const [crypto] = useState([
-    { name: 'BitCoin', abbr: 'BTCN', price: '75303', change: '24' },
-    { name: 'Etherium', abbr: 'ETRM', price: '20405', change: '5.4' },
-  ])
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [owned, setOwned] = useState<OwnedStock[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadData = async (uid: number) => {
-    setLoading(true)
+    setLoading(true);
     try {
       const [stateRes, ownedRes] = await Promise.all([
         axios.get(`/api/sim/state/${uid}`),
         axios.get(`/api/stocks/owned/${uid}`),
-      ])
-      setPortfolio(stateRes.data)
-      setOwned(ownedRes.data)
+      ]);
+      setPortfolio(stateRes.data);
+      setOwned(ownedRes.data);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (!user) {
-      navigate('/Login')
-      return
+      navigate("/Login");
+      return;
     }
-    loadData(user.uid)
+    loadData(user.uid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   const advance = async (days: number) => {
-    if (!user) return
+    if (!user) return;
     try {
       const res = await axios.post(
         `/api/sim/advance?uid=${user.uid}&days=${days}`,
-      )
-      setPortfolio(res.data)
+      );
+      setPortfolio(res.data);
       // refresh holdings (prices/values change with the date)
-      const ownedRes = await axios.get(`/api/stocks/owned/${user.uid}`)
-      setOwned(ownedRes.data)
+      const ownedRes = await axios.get(`/api/stocks/owned/${user.uid}`);
+      setOwned(ownedRes.data);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-  }
+  };
+
+  const restart = async () => {
+    if (!user) return;
+    try {
+      const res = await axios.post(`/api/sim/restart?uid=${user.uid}`);
+      setPortfolio(res.data);
+      setOwned([]);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fmt = (n: number | undefined) =>
     n === undefined
-      ? '—'
+      ? "—"
       : n.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        })
+        });
 
   return (
     <div className="flex flex-col min-h-svh bg-gray-950">
@@ -116,11 +116,19 @@ const Dashboard = () => {
               </div>
               <div>
                 <div>Current Date</div>
-                <div className="text-[28px]">{portfolio?.date ?? '—'}</div>
+                <div className="text-[28px]">{portfolio?.date ?? "—"}</div>
               </div>
             </div>
             {portfolio?.simulationOver && (
-              <div className="text-amber-300 mt-3">Simulation complete.</div>
+              <div className="mt-3 flex items-center gap-4">
+                <div className="text-amber-300">Simulation complete.</div>
+                <button
+                  onClick={restart}
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg px-4 py-2 transition-colors"
+                >
+                  Restart Simulation
+                </button>
+              </div>
             )}
           </div>
           {/* time skip */}
@@ -182,31 +190,11 @@ const Dashboard = () => {
               ))}
             </div>
           )}
-
-          {/* forex/crypto still mocked */}
-          <div className="mt-4 opacity-80">
-            <div className="font-bold">Forex (demo)</div>
-            {forex.map((f) => (
-              <div key={f.abbr} className="grid grid-cols-3 gap-10 p-2 pl-6">
-                <div>{f.abbr}</div>
-                <div>{f.price}</div>
-                <div>{f.change}</div>
-              </div>
-            ))}
-            <div className="font-bold mt-2">Crypto (demo)</div>
-            {crypto.map((c) => (
-              <div key={c.abbr} className="grid grid-cols-3 gap-10 p-2 pl-6">
-                <div>{c.abbr}</div>
-                <div>{c.price}</div>
-                <div>{c.change}</div>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

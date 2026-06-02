@@ -38,4 +38,9 @@ public interface UserDao {
     public void removeUserStock(int uid, int sid, int quantity);
    
     public int getOwnedShares(int uid, int sid);
+
+    /**
+     * Reset a user's portfolio: clear all owned stocks and set balance.
+     */
+    public void resetUser(int uid, java.math.BigDecimal balance);
 }

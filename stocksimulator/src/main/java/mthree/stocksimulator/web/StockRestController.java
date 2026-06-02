@@ -66,7 +66,7 @@ public class StockRestController {
     public List<OwnedStockDto> owned(@PathVariable int uid) {
         List<OwnedStockDto> out = new ArrayList<>();
         for (Stock s : simService.getOwnedStocks(uid)) {
-            int shares = simService.getOwnedShares(uid, s.getSid());
+            int shares = s.getOwnedShares();
             BigDecimal value = s.getStockPrice()
                     .multiply(BigDecimal.valueOf(shares))
                     .setScale(2, RoundingMode.HALF_UP);
@@ -77,9 +77,15 @@ public class StockRestController {
         return out;
     }
 
-    /** Price history for one stock up to the current sim date (oldest first). */
+    /** Price history for one stock up to the current sim date (oldest first).
+     *  Optional ?days=N limits to the most recent N calendar days. */
     @GetMapping("/stocks/{sid}/history")
-    public List<java.util.Map<String, Object>> history(@PathVariable int sid) {
+    public List<java.util.Map<String, Object>> history(
+            @PathVariable int sid,
+            @RequestParam(required = false) Integer days) {
+        if (days != null && days > 0) {
+            return simService.getPriceHistory(sid, days);
+        }
         return simService.getPriceHistory(sid);
     }
 
@@ -109,13 +115,21 @@ public class StockRestController {
         return buildPortfolio(uid);
     }
 
+    /** Restart the simulation: reset clock to day 0 and reset user portfolio. */
+    @PostMapping("/sim/restart")
+    public PortfolioDto restart(@RequestParam int uid,
+                                @RequestParam(defaultValue = "100000.00") BigDecimal balance) {
+        simService.restartSimulation(uid, balance);
+        return buildPortfolio(uid);
+    }
+
     // ---- helpers ----
 
     private PortfolioDto buildPortfolio(int uid) {
         User user = userService.getUser(uid);
         BigDecimal stockValue = BigDecimal.ZERO;
         for (Stock s : simService.getOwnedStocks(uid)) {
-            int shares = simService.getOwnedShares(uid, s.getSid());
+            int shares = s.getOwnedShares();
             stockValue = stockValue.add(
                     s.getStockPrice().multiply(BigDecimal.valueOf(shares)));
         }

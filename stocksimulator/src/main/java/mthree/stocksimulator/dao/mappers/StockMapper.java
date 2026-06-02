@@ -28,6 +28,11 @@ public class StockMapper implements RowMapper<Stock> {
             stock.setStockPrice(rs.getBigDecimal("stockPrice"));
         }
 
+        // ownedStock is only present when the query joins user_stocks
+        if (hasColumn(rs, "ownedStock")) {
+            stock.setOwnedShares(rs.getInt("ownedStock"));
+        }
+
         return stock;
     }
 

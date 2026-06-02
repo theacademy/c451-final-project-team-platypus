@@ -64,6 +64,11 @@ public interface StockDao {
     public List<java.util.Map<String, Object>> getPriceHistory(int sid, String uptoDate);
 
     /**
+     * Price history limited to the most recent N calendar days before uptoDate.
+     */
+    public List<java.util.Map<String, Object>> getPriceHistory(int sid, String uptoDate, int days);
+
+    /**
      * Batch-insert rows into Stock_history.
      * @param historyRows rows of [Stock_sid, date, stockPrice]
      */

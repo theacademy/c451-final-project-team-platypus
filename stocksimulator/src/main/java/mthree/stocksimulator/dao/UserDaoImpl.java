@@ -118,4 +118,11 @@ public class UserDaoImpl implements UserDao {
         Integer result = jdbcTemplate.queryForObject(sql, Integer.class, uid, sid);
         return result != null ? result : 0;
     }
+
+    // Reset a user's portfolio: clear all stocks, set balance
+    @Override
+    public void resetUser(int uid, BigDecimal balance) {
+        jdbcTemplate.update("DELETE FROM user_stocks WHERE User_uid = ?", uid);
+        jdbcTemplate.update("UPDATE User SET accountBal = ? WHERE uid = ?", balance, uid);
+    }
 }

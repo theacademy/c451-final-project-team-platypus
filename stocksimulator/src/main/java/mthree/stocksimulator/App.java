@@ -58,11 +58,43 @@ public class App {
                 .build();
         }
         
+        // Default symbols to seed when the Stock table is empty.
+        private static final String[][] DEFAULT_STOCKS = {
+            //TECH
+            {"Apple Inc.", "AAPL"}, {"IBM", "IBM"}, 
+            {"Microsoft Corp.", "MSFT"}, {"NVIDIA", "NVDA"},
+            // FINANCE
+            {"Bank of America", "BAC"}, {"Wells Fargo", "WFC"},
+            {"Goldman Sachs", "GS"}, {"Citigroup", "C"},
+            //
+            {"Amazon.com Inc.", "AMZN"},
+        };
+
         @Override
         public void run(String... args){
             List<Stock> allStocks = jdbcTemplate.query("SELECT * FROM Stock", new StockMapper());
+
+            // If the Stock table is empty, seed the default rows first.
+            if (allStocks.isEmpty()) {
+                System.out.println("Stock table is empty - seeding default symbols...");
+                for (String[] pair : DEFAULT_STOCKS) {
+                    jdbcTemplate.update(
+                        "INSERT INTO Stock (stockName, stockCode) VALUES (?, ?)",
+                        pair[0], pair[1]);
+                }
+                allStocks = jdbcTemplate.query("SELECT * FROM Stock", new StockMapper());
+            }
+
             try {
                 for (Stock stock : allStocks) {
+                    // Skip stocks that already have history data (avoid refetching on restart).
+                    Integer count = jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM Stock_history WHERE Stock_sid = ?",
+                        Integer.class, stock.getSid());
+                    if (count != null && count > 0) {
+                        System.out.println("History already loaded for " + stock.getStockCode() + " (" + count + " rows) - skipping.");
+                        continue;
+                    }
                     fetchAndStoreSymbolData(stock);
                 }
             } catch (RuntimeException e) {
