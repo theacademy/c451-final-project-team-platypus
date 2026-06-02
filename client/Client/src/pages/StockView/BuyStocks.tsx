@@ -13,13 +13,17 @@ import {
 } from 'recharts'
 
 const BuyStocks = () => {
+  const [stockAmt, setStockAmt] = useState(1)
+  function handleStockIncrement() {
+    setStockAmt(stockAmt)
+  }
   const [stocks, setStocks] = useState([
     {
       category: 'stock',
       name: 'Apple',
       abbr: 'AAPL',
       price: '312.06',
-      change: '2.5',
+      change: '2.5', //Stock[0]
     },
     {
       category: 'stock',
@@ -118,7 +122,7 @@ const BuyStocks = () => {
     <div className="flex flex-col min-h-svh">
       <DashboardNav />
       <div className="container mx-auto flex-grow">
-        <div className="border p-2 flex flex-col flex-grow">
+        <div className="border p-2 flex flex-grow">
           {/* watchlist */}
           <div className="flex">
             <div className="border p-2">
@@ -180,9 +184,16 @@ const BuyStocks = () => {
               </ResponsiveContainer>
             </div>
             {/* purchase ui (with news maybe)*/}
-            <div>
+            <div className="border p-2 rounded-lg">
+              <div className="p-2 text-[24px]">Purchase Stock</div>
               <div>Current Balance</div>
-              <div>Stock Amt:</div>
+              <div>100,000</div>
+              <div className="flex gap-5">
+                <div>Stock Amount: {stockAmt}</div>
+                <button onClick={handleStockIncrement} className="text-[18px]">
+                  +
+                </button>
+              </div>
               <div>Buy Stock</div>
               <div>Sell Stock</div>
             </div>
