@@ -41,7 +41,6 @@ public class App {
         
         private JdbcTemplate jdbcTemplate;
         private final WebClient webClient;
-        private final StockDao stockDao;
         private static final String BASE_URL = "https://www.alphavantage.co";
         private static final String START_DATE = "2000-01-01";
         private static final String END_DATE = "2020-01-01";
@@ -49,7 +48,6 @@ public class App {
         
         public OnStartup(JdbcTemplate jdbcTemplate, StockDao stockDao, WebClient.Builder webClientBuilder) {
             this.jdbcTemplate = jdbcTemplate;
-            this.stockDao = stockDao;
             this.webClient = webClientBuilder
                 .baseUrl(BASE_URL)
                 .codecs(configurer -> configurer
@@ -57,50 +55,12 @@ public class App {
                         .maxInMemorySize(32 * 1024 * 1024)) // 32MB buffer
                 .build();
         }
-        
-        // Default symbols to seed when the Stock table is empty.
-        private static final String[][] DEFAULT_STOCKS = {
-            //TECH
-            {"Apple Inc.", "AAPL"}, {"IBM", "IBM"}, 
-            {"Microsoft", "MSFT"}, {"NVIDIA", "NVDA"},
-            // FINANCE
-            {"Bank of America", "BAC"}, {"Wells Fargo", "WFC"},
-            {"Goldman Sachs", "GS"}, {"Citigroup", "C"},
-            // AUTOMOTIVE
-            {"Toyota", "TM"}, {"Ford", "F"},
-            {"Honda", "HMC"}, {"Harley-Davidson", "HOG"},
-            // AIRLINES
-            {"Southwest Airlines", "LUV"}, {"Alaska Air Group", "ALK"},
-            {"SkyWest", "SKYW"}, {"Ryanair", "RYAAY"},
-            // AMAZON
-            {"Amazon", "AMZN"},
-        };
 
         @Override
         public void run(String... args){
             List<Stock> allStocks = jdbcTemplate.query("SELECT * FROM Stock", new StockMapper());
-
-            // If the Stock table is empty, seed the default rows first.
-            if (allStocks.isEmpty()) {
-                System.out.println("Stock table is empty - seeding default symbols...");
-                for (String[] pair : DEFAULT_STOCKS) {
-                    jdbcTemplate.update(
-                        "INSERT INTO Stock (stockName, stockCode) VALUES (?, ?)",
-                        pair[0], pair[1]);
-                }
-                allStocks = jdbcTemplate.query("SELECT * FROM Stock", new StockMapper());
-            }
-
             try {
                 for (Stock stock : allStocks) {
-                    // Skip stocks that already have history data (avoid refetching on restart).
-                    Integer count = jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM Stock_history WHERE Stock_sid = ?",
-                        Integer.class, stock.getSid());
-                    if (count != null && count > 0) {
-                        System.out.println("History already loaded for " + stock.getStockCode() + " (" + count + " rows) - skipping.");
-                        continue;
-                    }
                     fetchAndStoreSymbolData(stock);
                 }
             } catch (RuntimeException e) {
@@ -108,6 +68,9 @@ public class App {
                 System.err.println(e.getMessage());
                 System.exit(1);
             }
+            
+            throw new UnsupportedOperationException("Please implement user persistence first!");
+            //TODO: Store added users into a file and then load that file up since user additions arent actually persisted as the database wipes itself on startup
         }
         
         public void fetchAndStoreSymbolData(Stock stock) throws RuntimeException{
@@ -161,6 +124,6 @@ public class App {
             } else {
                 System.out.println("-> No valid dates found in the specified range for " + stock.getStockCode());
             }
-    }
+        }
     }
 }
