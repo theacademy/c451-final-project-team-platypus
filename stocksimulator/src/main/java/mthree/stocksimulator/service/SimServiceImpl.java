@@ -83,68 +83,6 @@ public class SimServiceImpl implements SimService {
             System.out.println("No price data found for sid " + sid + " on " + getDate());
             return null;
         }
-}
-    
-    public void fetchAndStoreSymbol(String symbol) {
-            System.out.println("Fetching data for " + symbol + " via WebClient...");
-
-            // 1. Fetch and parse via WebClient
-            JsonNode rootNode = webClient.get()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/query")
-                            .queryParam("function", "TIME_SERIES_DAILY")
-                            .queryParam("symbol", symbol)
-                            .queryParam("outputsize", "full")
-                            .queryParam("apikey", API_KEY)
-                            .build())
-                    .retrieve()
-                    .bodyToMono(JsonNode.class)
-                    .block();
-
-            // 2. Rate limit check & local file fallback
-            if (rootNode == null || !rootNode.has("Time Series (Daily)")) {
-                System.out.println("API rate limit exceeded for " + symbol + ".");
-                System.out.println("Pivoting data strategy: Attempting to load from local JSON file...");
-
-                File localJson = new File("mock_" + symbol.toLowerCase() + "_data.json");
-                if (localJson.exists()) {
-                    ObjectMapper fallbackMapper = new ObjectMapper();
-                    try {
-                        rootNode = fallbackMapper.readTree(localJson);
-                    } catch (java.io.IOException e) {
-                        System.out.println("Failed to read local file for " + symbol + ": " + e.getMessage());
-                        return;
-                    }
-                } else {
-                    System.out.println("Local file not found. Aborting data fetch for " + symbol);
-                    return;
-                }
-            }
-
-            // 3. Resolve the Stock's sid — creates the Stock row if it doesn't exist yet
-            int stockSid = stockDao.getOrCreateStockId(symbol);
-
-            // 4. Extract and filter the time series data
-            JsonNode timeSeriesNode = rootNode.get("Time Series (Daily)");
-            List<Object[]> historyRows = new ArrayList<>();
-
-            timeSeriesNode.fields().forEachRemaining(entry -> {
-                String date = entry.getKey();
-                if (date.compareTo(START_DATE) >= 0 && date.compareTo(END_DATE) <= 0) {
-                    BigDecimal price = new BigDecimal(entry.getValue().get("1. open").asText())
-                            .setScale(4, RoundingMode.HALF_UP);
-                    // Store as [stockSid, date, price] for batch insert
-                    historyRows.add(new Object[]{stockSid, LocalDateTime.parse(date + "T00:00:00"), price});
-                }
-            });
-
-            // 5. Batch insert into Stock_history
-            if (!historyRows.isEmpty()) {
-                stockDao.insertAllStockHistory(historyRows);
-                System.out.println("-> Successfully inserted " + historyRows.size() + " history rows for " + symbol);
-            } else {
-                System.out.println("-> No valid dates found in the specified range for " + symbol);
-            }
     }
     
     public String buyStock(int uid, int sid, int quantity) {
