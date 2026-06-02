@@ -11,9 +11,8 @@ import mthree.stocksimulator.dto.ApiDtos.TradeRequest;
 import mthree.stocksimulator.dto.ApiDtos.TradeResult;
 import mthree.stocksimulator.model.Stock;
 import mthree.stocksimulator.model.User;
-import mthree.stocksimulator.service.SimServiceImpl;
-import mthree.stocksimulator.service.UserServiceImpl;
-import org.springframework.http.ResponseEntity;
+import mthree.stocksimulator.service.UserService;
+import mthree.stocksimulator.service.SimService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,10 +32,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class StockRestController {
 
-    private final SimServiceImpl simService;
-    private final UserServiceImpl userService;
+    private final SimService simService;
+    private final UserService userService;
 
-    public StockRestController(SimServiceImpl simService, UserServiceImpl userService) {
+    public StockRestController(SimService simService, UserService userService) {
         this.simService = simService;
         this.userService = userService;
     }
