@@ -34,20 +34,26 @@ public interface StockDao {
     public BigDecimal getStockPrice(int sid, String currentDate);
     
     /**
-     * Gets a list of the stocks a user owns, each carrying its price on the
-     * given date.
+     * Gets a mapping of all owned stocks paired with the stock id
      * @param uid
-     * @param currentDate
-     * @return List of owned Stocks (with stockPrice populated for currentDate)
+     * @return Map of stock id and stock owned in said stock id
      */
-    public List<Stock> getOwnedStocks(int uid, String currentDate);
-
+    public Map<Integer, Integer> getOwnedStocks(int uid);
+    
     /**
      * Obtain price changes for ALL stocks in last day, week, month, and year
      * @param currentDate
-     * @return List of StockPriceSnapshot's for each stock
+     * @return List of StockPriceSnapshots containing needed data
      */
     public List<StockPriceSnapshot> getStocksWithPriceChange(String currentDate);
+    
+    /**
+     * update stock_history with new information of stock bought/sold. If quantity is negative, assume its sold
+     * @param uid
+     * @param sid
+     * @param quantity 
+     */
+    public void updateUserStock(int uid, int sid, int quantity);
 
     /**
      * Price history for one stock up to and including the given date, oldest
@@ -56,7 +62,7 @@ public interface StockDao {
      * @param uptoDate inclusive upper bound
      * @return ordered list of {date, price} maps
      */
-    public List<Map<String, Object>> getPriceHistory(int sid, String uptoDate);
+    public List<Map<String, BigDecimal>> getPriceHistory(int sid, String uptoDate);
 
     /**
      * Price history limited to the most recent N calendar days before uptoDate.
@@ -65,11 +71,5 @@ public interface StockDao {
      * @param days
      * @return 
      */
-    public List<Map<String, Object>> getPriceHistory(int sid, String uptoDate, int days);
-
-    /**
-     * Batch-insert rows into Stock_history.
-     * @param historyRows rows of [Stock_sid, date, stockPrice]
-     */
-    public void insertAllStockHistory(List<Object[]> historyRows);
+    public List<Map<String, BigDecimal>> getPriceHistory(int sid, String uptoDate, int days);
 }

@@ -6,11 +6,15 @@ package mthree.stocksimulator.dao;
 
 import java.math.BigDecimal;
 import java.sql.PreparedStatement;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import mthree.stocksimulator.dao.mappers.StockMapper;
 import mthree.stocksimulator.dao.mappers.StockPriceSnapshotMapper;
 import mthree.stocksimulator.model.Stock;
 import mthree.stocksimulator.model.StockPriceSnapshot;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -41,35 +45,13 @@ public class StockDaoImpl implements StockDao{
     }
     
     @Override
-    public BigDecimal getStockPrice(int sid, String currentDate){
+    public BigDecimal getStockPrice(int sid, String currentDate) throws EmptyResultDataAccessException{
         String sql = "SELECT stockPrice FROM Stock_history WHERE Stock_sid = ? AND DATE(date) = ?";
-        try {
-            return jdbcTemplate.queryForObject(sql, BigDecimal.class, sid, currentDate);
-        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
-            return null; // no price on this date; service handles the null
-        }
+        return jdbcTemplate.queryForObject(sql, BigDecimal.class, sid, currentDate);
     }
     
-    // Populate Stock_history table with entries
     @Override
-    public void insertAllStockHistory(List<Object[]> historyRows) {
-        String sql = "INSERT INTO Stock_history (Stock_sid, date, stockPrice) VALUES (?, ?, ?)";
-        int batchSize = 1000;
-
-        jdbcTemplate.batchUpdate(
-            sql,
-            historyRows,
-            batchSize,
-            (PreparedStatement ps, Object[] row) -> {
-                ps.setInt(1, (int) row[0]);
-                ps.setObject(2, row[1]);  // LocalDateTime maps to DATETIME
-                ps.setBigDecimal(3, (BigDecimal) row[2]);
-            }
-        );
-    }
-
-    @Override
-    public List<java.util.Map<String, Object>> getPriceHistory(int sid, String uptoDate) {
+    public List<Map<String, BigDecimal>> getPriceHistory(int sid, String uptoDate) {
         String sql = """
                 SELECT DATE_FORMAT(date, '%Y-%m-%d') AS date, stockPrice AS price
                 FROM Stock_history
@@ -77,15 +59,14 @@ public class StockDaoImpl implements StockDao{
                 ORDER BY date ASC
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            java.util.Map<String, Object> point = new java.util.LinkedHashMap<>();
-            point.put("date", rs.getString("date"));
-            point.put("price", rs.getBigDecimal("price"));
+            Map<String, BigDecimal> point = new LinkedHashMap<>();
+            point.put(rs.getString("date"),rs.getBigDecimal("price"));
             return point;
         }, sid, uptoDate);
     }
 
     @Override
-    public List<java.util.Map<String, Object>> getPriceHistory(int sid, String uptoDate, int days) {
+    public List<Map<String, BigDecimal>> getPriceHistory(int sid, String uptoDate, int days) {
         String sql = """
                 SELECT DATE_FORMAT(date, '%Y-%m-%d') AS date, stockPrice AS price
                 FROM Stock_history
@@ -93,32 +74,23 @@ public class StockDaoImpl implements StockDao{
                 ORDER BY date ASC
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            java.util.Map<String, Object> point = new java.util.LinkedHashMap<>();
-            point.put("date", rs.getString("date"));
-            point.put("price", rs.getBigDecimal("price"));
+            Map<String, BigDecimal> point = new LinkedHashMap<>();
+            point.put(rs.getString("date"), rs.getBigDecimal("price"));
             return point;
         }, sid, uptoDate, uptoDate, days);
     }
     
     @Override
-    public List<Stock> getOwnedStocks(int uid, String currentDate) {
-        // Owned stocks (ownedStock > 0) joined to their price as of currentDate.
-        // Price = the most recent Stock_history row on or before currentDate.
-        // ownedStock is included so callers don't need a separate query per stock.
-        String sql = """
-                SELECT s.sid, s.stockName, s.stockCode, us.ownedStock, h.stockPrice
-                FROM user_stocks us
-                JOIN Stock s ON s.sid = us.Stock_sid
-                JOIN Stock_history h ON h.Stock_sid = s.sid
-                    AND h.date = (
-                        SELECT MAX(h2.date)
-                        FROM Stock_history h2
-                        WHERE h2.Stock_sid = s.sid AND h2.date <= CONCAT(?, ' 23:59:59')
-                    )
-                WHERE us.User_uid = ? AND us.ownedStock > 0
-                ORDER BY s.stockCode
-                """;
-        return jdbcTemplate.query(sql, new StockMapper(), currentDate, uid);
+    public Map<Integer, Integer> getOwnedStocks(int uid) {
+        String sql = "SELECT stock_sid, ownedStock FROM stock_history WHERE uid = ?";
+
+        return jdbcTemplate.query(sql, rs -> {
+            Map<Integer, Integer> map = new HashMap<>();
+            while (rs.next()){
+                map.put(rs.getInt("stock_sid"), rs.getInt("ownedStock"));
+            }
+            return map;
+        }, uid);
     }
 
     @Override
@@ -156,6 +128,12 @@ public class StockDaoImpl implements StockDao{
                     ORDER BY s.stockCode
                     """;
 
-            return jdbcTemplate.query(sql, new StockPriceSnapshotMapper(), currentDate, currentDate, currentDate, currentDate, currentDate);
+            return jdbcTemplate.query(sql, new StockPriceSnapshotMapper() , currentDate, currentDate, currentDate, currentDate, currentDate);
         }
+    
+    @Override
+    public void updateUserStock(int uid, int sid, int quantity) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+    
 }
