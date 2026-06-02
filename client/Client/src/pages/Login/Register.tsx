@@ -114,7 +114,7 @@ const Register = () => {
                 <div className="mb-4 text-red-400 text-sm">{error}</div>
               )}
 
-              <label className="flex flex-col mt-5">
+              <label className="flex flex-col pt-1">
                 <button
                   type="submit"
                   className="text-white bg-indigo-500 rounded-lg p-3 mb-5 hover:bg-indigo-700 duration-250"

@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 const HomeNav = () => {
   return (
     <div>
-      <div className="flex justify-between p-5 bg-gray-900 text-white border-b border-gray-800">
+      <div className="flex justify-between px-10 py-5 bg-gray-900 text-white border-b border-gray-800">
         {/* left side */}
         <div className="flex gap-5">
           <div className="p-2">StockSim</div>
-          <div className="flex">
+          {/* <div className="flex">
             <Link
               to="/Dashboard"
               className="p-2 text-gray-300 hover:text-white"
@@ -20,7 +20,7 @@ const HomeNav = () => {
             >
               To Buy Stocks Page
             </Link>
-          </div>
+          </div> */}
         </div>
         {/* right side */}
         <div className="flex gap-5">
