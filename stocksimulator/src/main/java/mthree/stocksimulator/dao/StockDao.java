@@ -36,9 +36,10 @@ public interface StockDao {
     /**
      * Gets a mapping of all owned stocks paired with the stock id
      * @param uid
-     * @return Map of stock id and stock owned in said stock id
+     * @param sid
+     * @return number of owned stock in company
      */
-    public Map<Integer, Integer> getOwnedStocks(int uid);
+    public int getOwnedStocks(int uid, int sid);
     
     /**
      * Obtain price changes for ALL stocks in last day, week, month, and year
@@ -57,12 +58,12 @@ public interface StockDao {
 
     /**
      * Price history for one stock up to and including the given date, oldest
-     * first. Each row is [date 'yyyy-MM-dd', price].
+     * first. Each row is ['yyyy-MM-dd', price].
      * @param sid
      * @param uptoDate inclusive upper bound
-     * @return ordered list of {date, price} maps
+     * @return ordered map of {date, price} for stock
      */
-    public List<Map<String, BigDecimal>> getPriceHistory(int sid, String uptoDate);
+    public Map<String, BigDecimal> getPriceHistory(int sid, String uptoDate);
 
     /**
      * Price history limited to the most recent N calendar days before uptoDate.
@@ -71,5 +72,5 @@ public interface StockDao {
      * @param days
      * @return 
      */
-    public List<Map<String, BigDecimal>> getPriceHistory(int sid, String uptoDate, int days);
+    public Map<String, BigDecimal> getPriceHistory(int sid, String uptoDate, int days);
 }

@@ -50,38 +50,50 @@ public class StockDaoImpl implements StockDao{
     }
     
     @Override
-    public List<Map<String, BigDecimal>> getPriceHistory(int sid, String uptoDate) {
+    public Map<String, BigDecimal> getPriceHistory(int sid, String uptoDate) {
         String sql = """
                 SELECT DATE_FORMAT(date, '%Y-%m-%d') AS date, stockPrice AS price
                 FROM Stock_history
                 WHERE Stock_sid = ? AND DATE(date) <= ?
                 ORDER BY date ASC
                 """;
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            Map<String, BigDecimal> point = new LinkedHashMap<>();
-            point.put(rs.getString("date"),rs.getBigDecimal("price"));
-            return point;
-        }, sid, uptoDate);
+        return jdbcTemplate.query(sql, rs -> {
+        Map<String, BigDecimal> result = new LinkedHashMap<>();
+
+        while (rs.next()) {
+            result.put(
+                rs.getString("date"),
+                rs.getBigDecimal("price")
+            );
+        }
+        return result;
+        }, sid, uptoDate 
     }
 
     @Override
-    public List<Map<String, BigDecimal>> getPriceHistory(int sid, String uptoDate, int days) {
+    public Map<String, BigDecimal> getPriceHistory(int sid, String uptoDate, int days) {
         String sql = """
                 SELECT DATE_FORMAT(date, '%Y-%m-%d') AS date, stockPrice AS price
                 FROM Stock_history
                 WHERE Stock_sid = ? AND DATE(date) <= ? AND DATE(date) >= DATE_SUB(?, INTERVAL ? DAY)
                 ORDER BY date ASC
                 """;
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            Map<String, BigDecimal> point = new LinkedHashMap<>();
-            point.put(rs.getString("date"), rs.getBigDecimal("price"));
-            return point;
+        return jdbcTemplate.query(sql, rs -> {
+        Map<String, BigDecimal> result = new LinkedHashMap<>();
+
+        while (rs.next()) {
+            result.put(
+                rs.getString("date"),
+                rs.getBigDecimal("price")
+            );
+        }
+        return result;
         }, sid, uptoDate, uptoDate, days);
     }
     
     @Override
-    public Map<Integer, Integer> getOwnedStocks(int uid) {
-        String sql = "SELECT stock_sid, ownedStock FROM stock_history WHERE uid = ?";
+    public int getOwnedStocks(int uid, int sid) {
+        String sql = "SELECT ownedStock FROM stock_history WHERE uid = ? AND sid = ?";
 
         return jdbcTemplate.query(sql, rs -> {
             Map<Integer, Integer> map = new HashMap<>();
