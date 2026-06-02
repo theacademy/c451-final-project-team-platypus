@@ -62,12 +62,18 @@ public class App {
         private static final String[][] DEFAULT_STOCKS = {
             //TECH
             {"Apple Inc.", "AAPL"}, {"IBM", "IBM"}, 
-            {"Microsoft Corp.", "MSFT"}, {"NVIDIA", "NVDA"},
+            {"Microsoft", "MSFT"}, {"NVIDIA", "NVDA"},
             // FINANCE
             {"Bank of America", "BAC"}, {"Wells Fargo", "WFC"},
             {"Goldman Sachs", "GS"}, {"Citigroup", "C"},
-            //
-            {"Amazon.com Inc.", "AMZN"},
+            // AUTOMOTIVE
+            {"Toyota", "TM"}, {"Ford", "F"},
+            {"Honda", "HMC"}, {"Harley-Davidson", "HOG"},
+            // AIRLINES
+            {"Southwest Airlines", "LUV"}, {"Alaska Air Group", "ALK"},
+            {"SkyWest", "SKYW"}, {"Ryanair", "RYAAY"},
+            // AMAZON
+            {"Amazon", "AMZN"},
         };
 
         @Override

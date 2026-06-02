@@ -138,12 +138,13 @@ const BuyStocks = () => {
   return (
     <div className="flex flex-col min-h-svh">
       <DashboardNav />
-      <div className="container mx-auto flex-grow">
+      <div className="max-w-screen-2xl mx-auto flex-grow px-4">
         <div className="border p-2 flex flex-grow gap-4">
           {/* watchlist */}
-          <div className="border p-2">
-            <div className="grid grid-cols-6 gap-6 p-2 font-bold border-b">
+          <div className="border p-2 shrink-0 overflow-auto">
+            <div className="grid grid-cols-7 gap-6 p-2 font-bold border-b">
               <div>Symbol</div>
+              <div>Name</div>
               <div>Price</div>
               <div>Owned</div>
               <div>1D</div>
@@ -155,13 +156,14 @@ const BuyStocks = () => {
               <div
                 key={stock.sid}
                 onClick={() => setSelected(stock)}
-                className={`grid grid-cols-6 gap-6 p-2 cursor-pointer rounded ${
+                className={`grid grid-cols-7 gap-6 p-2 cursor-pointer rounded ${
                   selected?.sid === stock.sid
                     ? "bg-indigo-100"
                     : "hover:bg-gray-100"
                 }`}
               >
                 <div>{stock.stockCode}</div>
+                <div>{stock.stockName}</div>
                 <div>${stock.price}</div>
                 <div>{ownedMap[stock.sid] ?? 0}</div>
                 <div>{fmtPct(stock.change1d)}</div>
@@ -173,7 +175,7 @@ const BuyStocks = () => {
 
           {/* chart + purchase ui */}
           <div className="flex flex-col flex-grow min-w-0">
-            <div style={{ width: "100%", maxWidth: 600, aspectRatio: 1.618 }}>
+            <div style={{ width: "100%", height: 450 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={history}>
                   <CartesianGrid />

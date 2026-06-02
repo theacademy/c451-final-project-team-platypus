@@ -145,19 +145,19 @@ const Dashboard = () => {
                 1D
               </button>
               <button
-                onClick={() => advance(7)}
+                onClick={() => advance(5)}
                 className="border rounded-[15px] p-2 flex-grow bg-gray-700 hover:bg-gray-600 focus:bg-indigo-500"
               >
                 1W
               </button>
               <button
-                onClick={() => advance(30)}
+                onClick={() => advance(20)}
                 className="border rounded-[15px] p-2 flex-grow bg-gray-700 hover:bg-gray-600 focus:bg-indigo-500"
               >
                 1M
               </button>
               <button
-                onClick={() => advance(365)}
+                onClick={() => advance(251)}
                 className="border rounded-[15px] p-2 flex-grow bg-gray-700 hover:bg-gray-600 focus:bg-indigo-500"
               >
                 1Y

@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS `stockSimulator`.`Stock_history` (
   `Stock_sid` INT NOT NULL,
   `stockPrice` DECIMAL(10,4) NOT NULL,
   INDEX `fk_table1_Stock2_idx` (`Stock_sid` ASC) VISIBLE,
+  INDEX `idx_stock_date_price` (`Stock_sid` ASC, `date` ASC, `stockPrice` ASC) VISIBLE,
   PRIMARY KEY (`tid`),
   CONSTRAINT `fk_table1_Stock2`
     FOREIGN KEY (`Stock_sid`)
