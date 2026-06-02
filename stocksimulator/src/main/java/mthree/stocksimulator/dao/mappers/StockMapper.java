@@ -23,27 +23,6 @@ public class StockMapper implements RowMapper<Stock> {
         stock.setStockName(rs.getString("stockName"));
         stock.setStockCode(rs.getString("stockCode"));
 
-        // stockPrice is only present when the query joins Stock_history
-        if (hasColumn(rs, "stockPrice")) {
-            stock.setStockPrice(rs.getBigDecimal("stockPrice"));
-        }
-
-        // ownedStock is only present when the query joins user_stocks
-        if (hasColumn(rs, "ownedStock")) {
-            stock.setOwnedShares(rs.getInt("ownedStock"));
-        }
-
         return stock;
     }
-
-    private boolean hasColumn(ResultSet rs, String column) throws SQLException {
-        java.sql.ResultSetMetaData meta = rs.getMetaData();
-        int count = meta.getColumnCount();
-        for (int i = 1; i <= count; i++) {
-            if (column.equalsIgnoreCase(meta.getColumnLabel(i))) {
-                return true;
-            }
-        }
-        return false;
-    }  
 }
