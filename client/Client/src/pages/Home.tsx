@@ -16,7 +16,7 @@ const Home = () => {
               Stock Market Simulator
             </div>
             <div className="text-[24px] text-gray-300">
-              Trusted by over three million educated investors
+              Practice investing with zero real-world risk
             </div>
             <div className="mt-20">
               <div className="text-[18px] pb-5 text-gray-400">

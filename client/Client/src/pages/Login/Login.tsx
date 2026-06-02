@@ -79,7 +79,7 @@ const Login = () => {
                 />
               </label>
 
-              <label
+              {/* <label
                 htmlFor="current-password"
                 className="block text-sm mb-2 dark:text-white"
               >
@@ -92,10 +92,10 @@ const Login = () => {
                 placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-              />
+              /> */}
 
               {/* Checkbox */}
-              <div className="flex mb-4">
+              {/* <div className="flex mb-4">
                 <input
                   id="show-password-checkbox"
                   type="checkbox"
@@ -109,7 +109,7 @@ const Login = () => {
                 >
                   Show password
                 </label>
-              </div>
+              </div> */}
 
               {error && (
                 <div className="mb-4 text-red-400 text-sm">{error}</div>

@@ -1,94 +1,94 @@
-import React from "react";
-import DashboardNav from "../../components/DashboardNav";
-import Footer from "../../components/Footer";
-import { useState, useEffect } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { getUser } from "../../lib/session";
+import React from 'react'
+import DashboardNav from '../../components/DashboardNav'
+import Footer from '../../components/Footer'
+import { useState, useEffect } from 'react'
+import axios from 'axios'
+import { useNavigate } from 'react-router-dom'
+import { getUser } from '../../lib/session'
 
 interface Portfolio {
-  date: string;
-  cash: number;
-  stockValue: number;
-  total: number;
-  simulationOver: boolean;
+  date: string
+  cash: number
+  stockValue: number
+  total: number
+  simulationOver: boolean
 }
 
 interface OwnedStock {
-  sid: number;
-  stockCode: string;
-  stockName: string;
-  price: number;
-  shares: number;
-  value: number;
+  sid: number
+  stockCode: string
+  stockName: string
+  price: number
+  shares: number
+  value: number
 }
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-  const user = getUser();
+  const navigate = useNavigate()
+  const user = getUser()
 
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [owned, setOwned] = useState<OwnedStock[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
+  const [owned, setOwned] = useState<OwnedStock[]>([])
+  const [loading, setLoading] = useState(true)
 
   const loadData = async (uid: number) => {
-    setLoading(true);
+    setLoading(true)
     try {
       const [stateRes, ownedRes] = await Promise.all([
         axios.get(`/api/sim/state/${uid}`),
         axios.get(`/api/stocks/owned/${uid}`),
-      ]);
-      setPortfolio(stateRes.data);
-      setOwned(ownedRes.data);
+      ])
+      setPortfolio(stateRes.data)
+      setOwned(ownedRes.data)
     } catch (err) {
-      console.error(err);
+      console.error(err)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
     if (!user) {
-      navigate("/Login");
-      return;
+      navigate('/Login')
+      return
     }
-    loadData(user.uid);
+    loadData(user.uid)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [])
 
   const advance = async (days: number) => {
-    if (!user) return;
+    if (!user) return
     try {
       const res = await axios.post(
         `/api/sim/advance?uid=${user.uid}&days=${days}`,
-      );
-      setPortfolio(res.data);
+      )
+      setPortfolio(res.data)
       // refresh holdings (prices/values change with the date)
-      const ownedRes = await axios.get(`/api/stocks/owned/${user.uid}`);
-      setOwned(ownedRes.data);
+      const ownedRes = await axios.get(`/api/stocks/owned/${user.uid}`)
+      setOwned(ownedRes.data)
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
+  }
 
   const restart = async () => {
-    if (!user) return;
+    if (!user) return
     try {
-      const res = await axios.post(`/api/sim/restart?uid=${user.uid}`);
-      setPortfolio(res.data);
-      setOwned([]);
+      const res = await axios.post(`/api/sim/restart?uid=${user.uid}`)
+      setPortfolio(res.data)
+      setOwned([])
     } catch (err) {
-      console.error(err);
+      console.error(err)
     }
-  };
+  }
 
   const fmt = (n: number | undefined) =>
     n === undefined
-      ? "—"
+      ? '—'
       : n.toLocaleString(undefined, {
           minimumFractionDigits: 2,
           maximumFractionDigits: 2,
-        });
+        })
 
   return (
     <div className="flex flex-col min-h-svh bg-gray-950">
@@ -116,7 +116,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <div>Current Date</div>
-                <div className="text-[28px]">{portfolio?.date ?? "—"}</div>
+                <div className="text-[28px]">{portfolio?.date ?? '—'}</div>
               </div>
             </div>
             {portfolio?.simulationOver && (
@@ -137,7 +137,7 @@ const Dashboard = () => {
             <div className="mt-2">
               Pick a span, then advance the simulation.
             </div>
-            <div className="flex p-2 gap-2 bg-gray-950 border rounded-[20px] justify-evenly mt-5">
+            <div className="flex p-4 gap-5 bg-gray-950 border rounded-[30px] justify-evenly mt-5">
               <button
                 onClick={() => advance(1)}
                 className="border rounded-[15px] p-2 flex-grow bg-gray-700 hover:bg-gray-600 focus:bg-indigo-500"
@@ -194,7 +194,7 @@ const Dashboard = () => {
       </div>
       <Footer />
     </div>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard

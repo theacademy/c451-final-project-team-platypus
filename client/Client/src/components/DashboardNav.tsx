@@ -12,19 +12,19 @@ const DashboardNav = () => {
               to="/Dashboard"
               className="p-2 text-gray-300 hover:text-white"
             >
-              To Dashboard Page
+              Dashboard
             </Link>
             <Link
               to="/BuyStocks"
               className="p-2 text-gray-300 hover:text-white"
             >
-              To Buy Stocks Page
+              Buy Stocks
             </Link>
           </div>
         </div>
         {/* right side */}
         <div className="flex gap-5">
-          <div className="p-2">Welcome Dennis</div>
+          {/* <div className="p-2">Welcome Dennis</div> */}
           <Link
             to="/"
             className="border border-gray-700 rounded p-2 hover:bg-gray-800"
