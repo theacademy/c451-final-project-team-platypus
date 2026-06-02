@@ -11,7 +11,7 @@ import mthree.stocksimulator.model.Stock;
 import mthree.stocksimulator.model.StockPriceSnapshot;
 import org.springframework.dao.EmptyResultDataAccessException;
 
-interface SimService {
+public interface SimService {
     /**
      * gets current trading date
      * @return date as String
