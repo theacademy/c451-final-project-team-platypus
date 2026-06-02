@@ -67,7 +67,7 @@ public class StockDaoImpl implements StockDao{
             );
         }
         return result;
-        }, sid, uptoDate 
+        }, sid, uptoDate); 
     }
 
     @Override
@@ -95,13 +95,9 @@ public class StockDaoImpl implements StockDao{
     public int getOwnedStocks(int uid, int sid) {
         String sql = "SELECT ownedStock FROM stock_history WHERE uid = ? AND sid = ?";
 
-        return jdbcTemplate.query(sql, rs -> {
-            Map<Integer, Integer> map = new HashMap<>();
-            while (rs.next()){
-                map.put(rs.getInt("stock_sid"), rs.getInt("ownedStock"));
-            }
-            return map;
-        }, uid);
+        Integer ownedStocks = jdbcTemplate.queryForObject(sql, Integer.class, uid, sid);
+        
+        return ownedStocks != null ? ownedStocks : 0;
     }
 
     @Override

@@ -49,6 +49,21 @@ interface SimService {
     public Map<Integer,Integer> getOwnedStocks(int uid);
     
     /**
+     * Get price history of a given stock as a map
+     * @param sid
+     * @return 
+     */
+    public Map<String, BigDecimal> getPriceHistory(int sid);
+
+    /**
+     * get price history of a given stock as far back as the provided days
+     * @param sid
+     * @param days
+     * @return 
+     */
+    public Map<String, BigDecimal> getPriceHistory(int sid, int days);
+    
+    /**
      * Gets the amount of stock owned in a specific company by the specific user
      * @param uid
      * @param sid
@@ -57,29 +72,29 @@ interface SimService {
     public int getOwnedShares(int uid, int sid);
     
     /**
-     * Buys for the user stock in the given company. It is up to the caller to determine if the purchase is valid using the other methods
+     * Buys for the user stock in the given company. 
      * Does not update user balance
      * @param uid
      * @param sid
      * @param quantity 
      */
-    public void buyStock(int uid, int sid, int quantity);
+    public void buyStock(int uid, int sid, int quantity) throws InvalidOrderException;
     
     /**
-     * Sells the given amount of stock for the given company for the given user. It is up to the caller to determine if they can even sell that amount using the other methods
+     * Sells the given amount of stock for the given company for the given user.
      * Does not update user balance
      * @param uid
      * @param sid
      * @param quantity
      */
-    public void sellStock(int uid, int sid, int quantity);
+    public void sellStock(int uid, int sid, int quantity) throws InvalidOrderException;
     
     /**
      * add/remove dollars from user account
      * @param uid
      * @param quantity 
      */
-    public void updateUserBal(int uid, int quantity);
+    public void updateUserBal(int uid, BigDecimal quantity) throws InvalidOrderException;
     
     /**
      * Gets the stock price change information for all stocks.

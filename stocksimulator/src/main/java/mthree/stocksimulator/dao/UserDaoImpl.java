@@ -74,19 +74,13 @@ public class UserDaoImpl implements UserDao {
         return jdbcTemplate.query(sql, new UserMapper());
     }
 
-    // Deduct an amount from the user's balance
+    // Update user's balance
     @Override
-    public void deductBalance(int uid, BigDecimal amount) {
-        String sql = "UPDATE User SET accountBal = accountBal - ? WHERE uid = ?";
-        jdbcTemplate.update(sql, amount, uid);
-    }
-
-    // Add an amount to the user's balance
-    @Override
-    public void addBalance(int uid, BigDecimal amount) {
+    public void updateBalance(int uid, BigDecimal amount) {
         String sql = "UPDATE User SET accountBal = accountBal + ? WHERE uid = ?";
         jdbcTemplate.update(sql, amount, uid);
     }
+
 
     // Insert or update a user's stock position with new stock
     @Override
