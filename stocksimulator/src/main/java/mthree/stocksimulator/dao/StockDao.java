@@ -6,7 +6,9 @@ package mthree.stocksimulator.dao;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import mthree.stocksimulator.model.Stock;
+import mthree.stocksimulator.model.StockPriceSnapshot;
 
 /**
  *
@@ -43,16 +45,9 @@ public interface StockDao {
     /**
      * Obtain price changes for ALL stocks in last day, week, month, and year
      * @param currentDate
-     * @return List of Stock[] arrays: [current, prevDay, prev7, prev30, prevYear]
+     * @return List of StockPriceSnapshot's for each stock
      */
-    public List<Stock[]> getStocksWithPriceChange(String currentDate);
-
-    /**
-     * Look up a Stock's sid by its code, creating the Stock row if absent.
-     * @param symbol the stock ticker/code
-     * @return the sid of the existing or newly created Stock
-     */
-    public int getOrCreateStockId(String symbol);
+    public List<StockPriceSnapshot> getStocksWithPriceChange(String currentDate);
 
     /**
      * Price history for one stock up to and including the given date, oldest
@@ -61,12 +56,16 @@ public interface StockDao {
      * @param uptoDate inclusive upper bound
      * @return ordered list of {date, price} maps
      */
-    public List<java.util.Map<String, Object>> getPriceHistory(int sid, String uptoDate);
+    public List<Map<String, Object>> getPriceHistory(int sid, String uptoDate);
 
     /**
      * Price history limited to the most recent N calendar days before uptoDate.
+     * @param sid
+     * @param uptoDate
+     * @param days
+     * @return 
      */
-    public List<java.util.Map<String, Object>> getPriceHistory(int sid, String uptoDate, int days);
+    public List<Map<String, Object>> getPriceHistory(int sid, String uptoDate, int days);
 
     /**
      * Batch-insert rows into Stock_history.
