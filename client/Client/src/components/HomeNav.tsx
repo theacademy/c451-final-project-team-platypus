@@ -7,7 +7,7 @@ const HomeNav = () => {
         {/* left side */}
         <div className="flex gap-5">
           <div className="p-2">StockSim</div>
-          <div className="flex">
+          {/* <div className="flex">
             <Link
               to="/Dashboard"
               className="p-2 text-gray-300 hover:text-white"
@@ -20,7 +20,7 @@ const HomeNav = () => {
             >
               To Buy Stocks Page
             </Link>
-          </div>
+          </div> */}
         </div>
         {/* right side */}
         <div className="flex gap-5">
