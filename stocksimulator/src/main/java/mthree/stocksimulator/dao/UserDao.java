@@ -1,0 +1,40 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
+ */
+package mthree.stocksimulator.dao;
+
+import java.math.BigDecimal;
+import java.util.List;
+import mthree.stocksimulator.model.User;
+
+/**
+ *
+ * @author gabri
+ */
+public interface UserDao {
+    
+    public User createUser(User user);
+    
+    public User getUser(int uid);
+
+    /**
+     * Look up a user by their (unique) username. Returns null if none.
+     * @param userName
+     * @return the User, or null if no user has that name
+     */
+    public User getUserByUserName(String userName);
+
+    public List<User> getAllUsers();
+    
+    public void updateUserName(int uid, String newName);
+    
+    public void updateBalance(int uid, BigDecimal amount);
+
+    /**
+     * Reset a user's portfolio: clear all owned stocks and set balance.
+     * @param uid
+     * @param balance
+     */
+    public void resetUser(int uid, BigDecimal balance);
+}
