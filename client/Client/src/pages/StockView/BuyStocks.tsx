@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
-import DashboardNav from '../../components/DashboardNav'
-import Footer from '../../components/Footer'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
-import { getUser } from '../../lib/session'
+import React, { useState, useEffect } from "react";
+import DashboardNav from "../../components/DashboardNav";
+import Footer from "../../components/Footer";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { getUser } from "../../lib/session";
 import {
   ResponsiveContainer,
   CartesianGrid,
@@ -12,128 +12,128 @@ import {
   LineChart,
   XAxis,
   YAxis,
-} from 'recharts'
+} from "recharts";
 
 interface MarketStock {
-  sid: number
-  stockCode: string
-  stockName: string
-  price: number
-  change1d: number | null
-  change7d: number | null
-  change30d: number | null
-  change1y: number | null
+  sid: number;
+  stockCode: string;
+  stockName: string;
+  price: number;
+  change1d: number | null;
+  change7d: number | null;
+  change30d: number | null;
+  change1y: number | null;
 }
 
 interface Portfolio {
-  date: string
-  cash: number
-  stockValue: number
-  total: number
-  simulationOver: boolean
+  date: string;
+  cash: number;
+  stockValue: number;
+  total: number;
+  simulationOver: boolean;
 }
 
 interface OwnedStock {
-  sid: number
-  shares: number
+  sid: number;
+  shares: number;
 }
 
 const BuyStocks = () => {
-  const navigate = useNavigate()
-  const user = getUser()
+  const navigate = useNavigate();
+  const user = getUser();
 
-  const [stocks, setStocks] = useState<MarketStock[]>([])
-  const [selected, setSelected] = useState<MarketStock | null>(null)
-  const [stockAmt, setStockAmt] = useState(1)
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
-  const [message, setMessage] = useState('')
-  const [ownedMap, setOwnedMap] = useState<Record<number, number>>({})
+  const [stocks, setStocks] = useState<MarketStock[]>([]);
+  const [selected, setSelected] = useState<MarketStock | null>(null);
+  const [stockAmt, setStockAmt] = useState(1);
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [message, setMessage] = useState("");
+  const [ownedMap, setOwnedMap] = useState<Record<number, number>>({});
 
-  const [history, setHistory] = useState<{ date: string; price: number }[]>([])
+  const [history, setHistory] = useState<{ date: string; price: number }[]>([]);
 
   const refresh = async () => {
-    if (!user) return
+    if (!user) return;
     try {
       const [mkt, state, ownedRes] = await Promise.all([
-        axios.get('/api/stocks'),
+        axios.get("/api/stocks"),
         axios.get(`/api/sim/state/${user.uid}`),
         axios.get(`/api/stocks/owned/${user.uid}`),
-      ])
-      setStocks(mkt.data)
-      setPortfolio(state.data)
-      const map: Record<number, number> = {}
+      ]);
+      setStocks(mkt.data);
+      setPortfolio(state.data);
+      const map: Record<number, number> = {};
       for (const o of ownedRes.data as OwnedStock[]) {
-        map[o.sid] = o.shares
+        map[o.sid] = o.shares;
       }
-      setOwnedMap(map)
+      setOwnedMap(map);
       setSelected((prev) =>
         prev
           ? (mkt.data.find((s: MarketStock) => s.sid === prev.sid) ??
             mkt.data[0])
           : mkt.data[0],
-      )
+      );
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-  }
+  };
 
   useEffect(() => {
     if (!user) {
-      navigate('/Login')
-      return
+      navigate("/Login");
+      return;
     }
-    refresh()
+    refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, []);
 
   // Load price history whenever the selected stock (or the sim date) changes.
   useEffect(() => {
-    if (!selected) return
+    if (!selected) return;
     axios
       .get(`/api/stocks/${selected.sid}/history?days=30`)
       .then((res) =>
         setHistory(
-          res.data.map((p: { date: string; price: string | number }) => ({
-            date: p.date,
-            price: Number(p.price),
+          Object.entries(res.data).map(([date, price]) => ({
+            date,
+            price: Number(price),
           })),
         ),
       )
-      .catch((err) => console.error(err))
+      .catch((err) => console.error(err));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selected?.sid, portfolio?.date])
+  }, [selected?.sid, portfolio?.date]);
 
-  const trade = async (action: 'buy' | 'sell') => {
-    if (!user || !selected) return
-    setMessage('')
+  const trade = async (action: "buy" | "sell") => {
+    if (!user || !selected) return;
+    setMessage("");
     try {
       const res = await axios.post(`/api/stocks/${action}`, {
         uid: user.uid,
         sid: selected.sid,
         quantity: stockAmt,
-      })
-      setMessage(res.data.message)
-      await refresh()
+      });
+      setMessage(res.data.message);
+      await refresh();
     } catch (err) {
-      setMessage('Trade failed.')
-      console.error(err)
+      setMessage("Trade failed.");
+      console.error(err);
     }
-  }
+  };
 
   const restart = async () => {
-    if (!user) return
+    if (!user) return;
     try {
-      const res = await axios.post(`/api/sim/restart?uid=${user.uid}`)
-      setPortfolio(res.data)
-      setOwnedMap({})
-      await refresh()
+      const res = await axios.post(`/api/sim/restart?uid=${user.uid}`);
+      setPortfolio(res.data);
+      setOwnedMap({});
+      await refresh();
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-  }
+  };
 
   const fmtPct = (p: number | null) =>
-    p === null ? 'N/A' : `${p >= 0 ? '+' : ''}${p}%`
+    p === null ? "N/A" : `${p >= 0 ? "+" : ""}${p}%`;
 
   return (
     <div className="flex flex-col min-h-svh bg-gray-950">
@@ -157,8 +157,8 @@ const BuyStocks = () => {
               onClick={() => setSelected(stock)}
               className={`grid grid-cols-7 gap-3 p-2 cursor-pointer rounded ${
                 selected?.sid === stock.sid
-                  ? 'bg-indigo-500'
-                  : 'hover:bg-gray-500'
+                  ? "bg-indigo-500"
+                  : "hover:bg-gray-500"
               }`}
             >
               <div>{stock.stockCode}</div>
@@ -175,7 +175,7 @@ const BuyStocks = () => {
         {/* chart and purchase ui */}
         <div className="min-w-0 flex flex-col gap-10">
           <div className="border rounded-[20px] bg-gray-700">
-            <div style={{ width: '100%', height: 450 }}>
+            <div style={{ width: "100%", height: 450 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={history}>
                   <CartesianGrid />
@@ -188,7 +188,7 @@ const BuyStocks = () => {
                     textAnchor="end"
                     height={60}
                   />
-                  <YAxis domain={['auto', 'auto']} />
+                  <YAxis domain={["auto", "auto"]} />
                   <Legend />
                 </LineChart>
               </ResponsiveContainer>
@@ -197,13 +197,13 @@ const BuyStocks = () => {
 
           <div className=" p-3 rounded-[20px] bg-gray-700 text-white">
             <div className="p-2 text-[24px]">
-              Purchase {selected ? selected.stockCode : 'Stock'}
+              Purchase {selected ? selected.stockCode : "Stock"}
             </div>
             <div>Current Date</div>
-            <div className="text-[20px]">{portfolio?.date ?? '—'}</div>
+            <div className="text-[20px]">{portfolio?.date ?? "—"}</div>
             <div className="mt-2">Current Balance</div>
             <div className="text-[20px]">
-              ${portfolio ? portfolio.cash.toLocaleString() : '—'}
+              ${portfolio ? portfolio.cash.toLocaleString() : "—"}
             </div>
             {selected && (
               <div className="mt-1">
@@ -233,14 +233,14 @@ const BuyStocks = () => {
             </div>
             <div className="flex gap-3 mt-4">
               <button
-                onClick={() => trade('buy')}
+                onClick={() => trade("buy")}
                 className="bg-gray-950 text-white rounded-[15px] px-4 py-2 hover:bg-gray-800 disabled:opacity-50"
                 disabled={!selected}
               >
                 Buy Stock
               </button>
               <button
-                onClick={() => trade('sell')}
+                onClick={() => trade("sell")}
                 className="bg-gray-950 text-white rounded-[15px] px-4 py-2 hover:bg-gray-800 disabled:opacity-50"
                 disabled={!selected}
               >
@@ -266,7 +266,7 @@ const BuyStocks = () => {
       </div>
       <Footer />
     </div>
-  )
-}
+  );
+};
 
-export default BuyStocks
+export default BuyStocks;

@@ -3,16 +3,21 @@ package mthree.stocksimulator.web;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import mthree.stocksimulator.dto.ApiDtos.OwnedStockDto;
 import mthree.stocksimulator.dto.ApiDtos.PortfolioDto;
 import mthree.stocksimulator.dto.ApiDtos.StockChangeDto;
 import mthree.stocksimulator.dto.ApiDtos.TradeRequest;
 import mthree.stocksimulator.dto.ApiDtos.TradeResult;
 import mthree.stocksimulator.model.Stock;
+import mthree.stocksimulator.model.StockPriceSnapshot;
 import mthree.stocksimulator.model.User;
-import mthree.stocksimulator.service.UserService;
+import mthree.stocksimulator.service.InvalidOrderException;
 import mthree.stocksimulator.service.SimService;
+import mthree.stocksimulator.service.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,8 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Market data, trading, and simulation-clock endpoints.
  *
  * NOTE: the simulation clock (current date) is GLOBAL — it lives in
- * SimServiceImpl as shared state, so all users share one timeline. That mirrors
- * the original CLI design; per-user clocks would need a schema/service change.
+ * SimServiceImpl as shared state, so all users share one timeline.
  */
 @RestController
 @RequestMapping("/api")
@@ -43,19 +47,20 @@ public class StockRestController {
     /** Current market: every stock with price and % change over 1d/7d/30d/1y. */
     @GetMapping("/stocks")
     public List<StockChangeDto> market() {
-        List<Stock[]> rows = simService.getStocksWithPriceChange();
+        List<StockPriceSnapshot> snapshots = simService.getStocksWithPriceChange();
         List<StockChangeDto> out = new ArrayList<>();
-        for (Stock[] r : rows) {
-            Stock cur = r[0];
+        for (StockPriceSnapshot sps : snapshots) {
+            Stock s = sps.getStock();
+            BigDecimal price = sps.getCurrentPrice();
             out.add(new StockChangeDto(
-                    cur.getSid(),
-                    cur.getStockCode(),
-                    cur.getStockName(),
-                    cur.getStockPrice(),
-                    pctChange(cur.getStockPrice(), r[1].getStockPrice()),
-                    pctChange(cur.getStockPrice(), r[2].getStockPrice()),
-                    pctChange(cur.getStockPrice(), r[3].getStockPrice()),
-                    pctChange(cur.getStockPrice(), r[4].getStockPrice())));
+                    s.getSid(),
+                    s.getStockCode(),
+                    s.getStockName(),
+                    price,
+                    pctChange(price, sps.getPrevDayPrice()),
+                    pctChange(price, sps.getPrev7Price()),
+                    pctChange(price, sps.getPrev30Price()),
+                    pctChange(price, sps.getPrev1YPrice())));
         }
         return out;
     }
@@ -63,15 +68,30 @@ public class StockRestController {
     /** Stocks a given user currently owns, with shares and value. */
     @GetMapping("/stocks/owned/{uid}")
     public List<OwnedStockDto> owned(@PathVariable int uid) {
+        // Build a sid -> snapshot map from the market data for current prices
+        Map<Integer, StockPriceSnapshot> priceMap = new HashMap<>();
+        for (StockPriceSnapshot sps : simService.getStocksWithPriceChange()) {
+            priceMap.put(sps.getStock().getSid(), sps);
+        }
+
+        Map<Integer, Integer> ownedMap = simService.getAllOwnedStocks(uid);
         List<OwnedStockDto> out = new ArrayList<>();
-        for (Stock s : simService.getOwnedStocks(uid)) {
-            int shares = s.getOwnedShares();
-            BigDecimal value = s.getStockPrice()
-                    .multiply(BigDecimal.valueOf(shares))
+
+        for (Map.Entry<Integer, Integer> entry : ownedMap.entrySet()) {
+            int sid = entry.getKey();
+            int shares = entry.getValue();
+            if (shares <= 0) continue;
+
+            StockPriceSnapshot sps = priceMap.get(sid);
+            if (sps == null) continue;
+
+            Stock s = sps.getStock();
+            BigDecimal price = sps.getCurrentPrice();
+            BigDecimal value = price.multiply(BigDecimal.valueOf(shares))
                     .setScale(2, RoundingMode.HALF_UP);
             out.add(new OwnedStockDto(
-                    s.getSid(), s.getStockCode(), s.getStockName(),
-                    s.getStockPrice(), shares, value));
+                    sid, s.getStockCode(), s.getStockName(),
+                    price, shares, value));
         }
         return out;
     }
@@ -79,7 +99,7 @@ public class StockRestController {
     /** Price history for one stock up to the current sim date (oldest first).
      *  Optional ?days=N limits to the most recent N calendar days. */
     @GetMapping("/stocks/{sid}/history")
-    public List<java.util.Map<String, Object>> history(
+    public Map<String, BigDecimal> history(
             @PathVariable int sid,
             @RequestParam(required = false) Integer days) {
         if (days != null && days > 0) {
@@ -90,14 +110,55 @@ public class StockRestController {
 
     @PostMapping("/stocks/buy")
     public TradeResult buy(@RequestBody TradeRequest req) {
-        String msg = simService.buyStock(req.uid(), req.sid(), req.quantity());
-        return new TradeResult(msg.startsWith("Successfully"), msg);
+        try {
+            // Get the correct simulation-date price from market snapshots
+            BigDecimal price = getSnapshotPrice(req.sid());
+            if (price == null) {
+                return new TradeResult(false, "No price data available for this stock.");
+            }
+            BigDecimal cost = price.multiply(BigDecimal.valueOf(req.quantity()));
+            // Deduct balance first (throws InvalidOrderException if insufficient funds)
+            simService.updateUserBal(req.uid(), cost.negate());
+            // Then add the shares
+            simService.buyStock(req.uid(), req.sid(), req.quantity());
+            return new TradeResult(true,
+                    "Successfully purchased " + req.quantity() + " share(s) for $" + cost.setScale(2, RoundingMode.HALF_UP));
+        } catch (InvalidOrderException e) {
+            return new TradeResult(false, e.getMessage());
+        } catch (Exception e) {
+            return new TradeResult(false, "Trade failed: " + e.getMessage());
+        }
     }
 
     @PostMapping("/stocks/sell")
     public TradeResult sell(@RequestBody TradeRequest req) {
-        String msg = simService.sellStock(req.uid(), req.sid(), req.quantity());
-        return new TradeResult(msg.startsWith("Successfully"), msg);
+        try {
+            // Check shares and remove them (throws InvalidOrderException if insufficient)
+            simService.sellStock(req.uid(), req.sid(), req.quantity());
+            // Calculate proceeds using the correct simulation-date price
+            BigDecimal price = getSnapshotPrice(req.sid());
+            BigDecimal proceeds = price != null
+                    ? price.multiply(BigDecimal.valueOf(req.quantity()))
+                    : BigDecimal.ZERO;
+            // Add proceeds to balance
+            simService.updateUserBal(req.uid(), proceeds);
+            return new TradeResult(true,
+                    "Successfully sold " + req.quantity() + " share(s) for $" + proceeds.setScale(2, RoundingMode.HALF_UP));
+        } catch (InvalidOrderException e) {
+            return new TradeResult(false, e.getMessage());
+        } catch (Exception e) {
+            return new TradeResult(false, "Trade failed: " + e.getMessage());
+        }
+    }
+
+    /** Look up the current simulation-date price for a stock from the market snapshots. */
+    private BigDecimal getSnapshotPrice(int sid) {
+        for (StockPriceSnapshot sps : simService.getStocksWithPriceChange()) {
+            if (sps.getStock().getSid() == sid) {
+                return sps.getCurrentPrice();
+            }
+        }
+        return null;
     }
 
     /** Advance the global simulation clock by N trading days. */
@@ -126,12 +187,23 @@ public class StockRestController {
 
     private PortfolioDto buildPortfolio(int uid) {
         User user = userService.getUser(uid);
-        BigDecimal stockValue = BigDecimal.ZERO;
-        for (Stock s : simService.getOwnedStocks(uid)) {
-            int shares = s.getOwnedShares();
-            stockValue = stockValue.add(
-                    s.getStockPrice().multiply(BigDecimal.valueOf(shares)));
+
+        // Use market snapshots for current prices to avoid N+1 queries
+        Map<Integer, BigDecimal> priceMap = new HashMap<>();
+        for (StockPriceSnapshot sps : simService.getStocksWithPriceChange()) {
+            priceMap.put(sps.getStock().getSid(), sps.getCurrentPrice());
         }
+
+        BigDecimal stockValue = BigDecimal.ZERO;
+        Map<Integer, Integer> ownedMap = simService.getAllOwnedStocks(uid);
+        for (Map.Entry<Integer, Integer> entry : ownedMap.entrySet()) {
+            int shares = entry.getValue();
+            BigDecimal price = priceMap.get(entry.getKey());
+            if (shares > 0 && price != null) {
+                stockValue = stockValue.add(price.multiply(BigDecimal.valueOf(shares)));
+            }
+        }
+
         stockValue = stockValue.setScale(2, RoundingMode.HALF_UP);
         BigDecimal cash = user.getAccountBal();
         return new PortfolioDto(

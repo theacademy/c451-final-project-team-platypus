@@ -45,7 +45,7 @@ public class StockDaoImpl implements StockDao{
     
     @Override
     public BigDecimal getStockPrice(int sid) throws EmptyResultDataAccessException{
-        String sql = "SELECT stockPrice FROM Stock_history WHERE Stock_sid = ?";
+        String sql = "SELECT stockPrice FROM Stock_history WHERE Stock_sid = ? ORDER BY date DESC LIMIT 1";
         return jdbcTemplate.queryForObject(sql, BigDecimal.class, sid);
     }
     
@@ -93,16 +93,15 @@ public class StockDaoImpl implements StockDao{
     
     @Override
     public Map<Integer, Integer> getAllOwnedStocks(int uid) {
-        String sql = "SELECT (sid, ownedStock) FROM stock_history WHERE uid = ?";
+        String sql = "SELECT Stock_sid, ownedStock FROM user_stocks WHERE User_uid = ? AND ownedStock > 0";
 
         return jdbcTemplate.query(sql, rs -> {
             Map<Integer, Integer> result = new LinkedHashMap<>();
             while (rs.next()) {
-                result.put(rs.getInt("sid"), rs.getInt("ownedStock"));
+                result.put(rs.getInt("Stock_sid"), rs.getInt("ownedStock"));
             }
             return result;
         }, uid);
-       
     }
     
     @Override
@@ -144,6 +143,8 @@ public class StockDaoImpl implements StockDao{
                     LEFT JOIN Stock_history p7  ON p7.Stock_sid  = a.Stock_sid AND DATE(p7.date)  = a.d_prev7
                     LEFT JOIN Stock_history p30 ON p30.Stock_sid = a.Stock_sid AND DATE(p30.date) = a.d_prev30
                     LEFT JOIN Stock_history p1Y ON p1Y.Stock_sid = a.Stock_sid AND DATE(p1Y.date) = a.d_prev1Y
+                    GROUP BY s.sid, s.stockName, s.stockCode,
+                             curr.stockPrice, p1.stockPrice, p7.stockPrice, p30.stockPrice, p1Y.stockPrice
                     ORDER BY s.stockCode
                     """;
 

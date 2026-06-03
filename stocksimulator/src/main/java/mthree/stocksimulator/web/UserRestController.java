@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import mthree.stocksimulator.dto.ApiDtos.AuthRequest;
 import mthree.stocksimulator.dto.ApiDtos.UserDto;
 import mthree.stocksimulator.model.User;
-import mthree.stocksimulator.service.UserServiceImpl;
+import mthree.stocksimulator.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
  * User registration, login (username-only), and lookup.
  *
  * NOTE: auth here is intentionally minimal to match the existing schema, which
- * has no password or email column. The password field on AuthRequest is ignored.
+ * has no password or email column.
  */
 @RestController
 @RequestMapping("/api/users")
@@ -27,9 +27,9 @@ public class UserRestController {
     // Default starting balance for new accounts (frontend register form has no balance field).
     private static final BigDecimal DEFAULT_BALANCE = new BigDecimal("100000.00");
 
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
-    public UserRestController(UserServiceImpl userService) {
+    public UserRestController(UserService userService) {
         this.userService = userService;
     }
 

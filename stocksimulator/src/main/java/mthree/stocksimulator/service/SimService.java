@@ -111,4 +111,11 @@ public interface SimService {
      * @return true if over. False if there are still trading days to do
      */
     public boolean isSimulationOver();
+
+    /**
+     * Restart the simulation: reset clock to day 0 and reset user portfolio.
+     * @param uid the user to reset
+     * @param startingBalance the balance to reset to
+     */
+    public void restartSimulation(int uid, BigDecimal startingBalance);
 }
